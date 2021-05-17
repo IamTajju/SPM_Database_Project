@@ -233,3 +233,106 @@ def getDeparmentWisePLORate(dptList):
         arrTable.append(yearTbl)
 
     return arrTable
+
+
+def getProgramHighestCGPA():
+    sql_query = '''SELECT program_t.programName, AVG(student_t.cgpa) FROM program_t, studentcourseenrollment_t, section_t, programcoursemapping_t, student_t WHERE student_t.student_id = studentcourseenrollment_t.student_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.course_id = programcoursemapping_t.course_id AND program_t.program_id = programcoursemapping_t.program_id AND section_t.year = YEAR(CURRENT_DATE) GROUP BY program_t.program_id;'''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query)
+        max_val = 0
+        programName = ""
+        for row in cursor.fetchall():
+            if max_val < row[1]:
+                max_val = row[1]
+                programName = row[0]
+
+    return programName
+
+
+def getProgramHighestPLO():
+    sql_query1 = '''SELECT program_t.programName, COUNT(ploevaluation_t.courseEnrollment_id) FROM ploevaluation_t, plohistory_t, curriculum_t, program_t WHERE ploevaluation_t.plo_id = plohistory_t.plo_id AND plohistory_t.curriculum_id = curriculum_t.curriculum_id AND (curriculum_t.expirationDate IS NULL OR curriculum_t.expirationDate = "") AND curriculum_t.program_id = program_t.program_id GROUP BY program_t.program_id;'''
+    sql_query2 = '''SELECT program_t.programName, COUNT(ploevaluation_t.courseEnrollment_id) FROM ploevaluation_t, plohistory_t, curriculum_t, program_t WHERE ploevaluation_t.plo_id = plohistory_t.plo_id AND plohistory_t.curriculum_id = curriculum_t.curriculum_id AND (curriculum_t.expirationDate IS NULL OR curriculum_t.expirationDate = "") AND curriculum_t.program_id = program_t.program_id AND ploevaluation_t.ploAchievementStatus = 'Y' GROUP BY program_t.program_id;'''
+
+    achieved = []
+    attempted = []
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query1)
+        attempted = cursor.fetchall()
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query2)
+        achieved = cursor.fetchall()
+
+    highestPLOrate = 0.0
+    programName = ""
+    for i in range(len(achieved)):
+        if highestPLOrate < achieved[i][1]/attempted[i][1]:
+            highestPLOrate = achieved[i][1]/attempted[i][1]
+            programName = achieved[i][0]
+
+    return programName
+
+
+def getProgramWisePLORate(programName):
+    sql_query1 = '''SELECT ploevaluation_t.plo_id, COUNT(ploevaluation_t.courseenrollment_id) FROM ploevaluation_t, plohistory_t, curriculum_t, program_t WHERE ploevaluation_t.plo_id = plohistory_t.plo_id AND plohistory_t.curriculum_id = curriculum_t.curriculum_id AND (curriculum_t.expirationDate IS NULL or curriculum_t.expirationDate = "") AND curriculum_t.program_id = program_t.program_id AND program_t.programName = "{}" GROUP BY plo_id;'''
+    sql_query2 = '''SELECT ploevaluation_t.plo_id, COUNT(ploevaluation_t.courseenrollment_id) FROM ploevaluation_t, plohistory_t, curriculum_t, program_t WHERE ploevaluation_t.plo_id = plohistory_t.plo_id AND plohistory_t.curriculum_id = curriculum_t.curriculum_id AND (curriculum_t.expirationDate IS NULL or curriculum_t.expirationDate = "") AND curriculum_t.program_id = program_t.program_id AND program_t.programName = "{}" AND ploevaluation_t.ploAchievementStatus = "Y" GROUP BY plo_id;'''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query1.format(programName))
+        attempted = cursor.fetchall()
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query2.format(programName))
+        achieved = cursor.fetchall()
+
+    dataTable = []
+    dict = {}
+    for i in range(len(attempted)):
+        data = []
+        PLOrate = 0.0
+        programName = attempted[i][0]
+        dict[programName] = False
+        for j in range(len(achieved)):
+            if attempted[i][0] == achieved[j][0]:
+                PLOrate = round(float(achieved[j][1]/attempted[i][1]), 2)
+                dict[programName] = True
+                programName = achieved[j][0]
+                break
+
+        if dict[programName] == False:
+            programName = attempted[i][0]
+            data.append(
+                "PLO" + programName[len(programName)-1:len(programName)])
+            data.append(0)
+        else:
+            data.append(
+                "PLO" + programName[len(programName)-1:len(programName)])
+            data.append(PLOrate*100)
+        dataTable.append(data)
+
+    print(dataTable)
+    return dataTable
+
+
+def getProgramWiseCGPA(programList):
+    sql_query = '''SELECT program_t.programName, AVG(student_t.cgpa) FROM program_t, studentcourseenrollment_t, section_t, programcoursemapping_t, student_t WHERE student_t.student_id = studentcourseenrollment_t.student_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.course_id = programcoursemapping_t.course_id AND program_t.program_id = programcoursemapping_t.program_id AND section_t.year = {} AND program_t.programName = "{}" GROUP BY program_t.program_id;'''
+    years = [2019, 2020, 2021]
+
+    arrTable = []
+
+    for year in years:
+        yearTbl = []
+        yearTbl.append(str(year))
+        for program in programList:
+            with connection.cursor() as cursor:
+                cursor.execute(sql_query.format(year, program[0]))
+                row = cursor.fetchone()
+                if row != None:
+                    yearTbl.append(round(float(row[1]), 2))
+                else:
+                    yearTbl.append(0.00)
+        arrTable.append(yearTbl)
+
+    return arrTable

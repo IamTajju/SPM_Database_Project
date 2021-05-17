@@ -4,20 +4,20 @@
 <div class="container mt-5">
     <div class="row align-items-center mt-5 ">
         <div class="col-7">
-            <h1 class="display-1">Department-wise Performance Statistics</h1>
+            <h1 class="display-1">Program-wise Performance Statistics</h1>
         </div>
         <div class="col-5">
             <div class="row">
                 <div class="col-6">
                     <div class="card-body text-white bg-success">
                         <h5 class="card-text">Highest PLO Rate</h5>
-                        <p class="card-text">{{ highestPLO }}</p>
+                        <p class="card-text">{{ highestPrgmPLORate }}</p>
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="card-body text-white bg-warning">
                         <h5 class="card-text">Highest Average CGPA</h5>
-                        <p class="card-text">{{ highestCGPA }}</p>
+                        <p class="card-text">{{ highestPrgmCGPA }}</p>
                     </div>
                 </div>
             </div>
@@ -31,24 +31,38 @@
             <a href="{% url 'schoolDashboard' %}" class="btn btn-outline-light">School-wise Statistics</a>
         </div>
         <div class="col-3">
-            <a href="{% url 'departmentDashboard' %}" class="btn btn-outline-light disabled">Department-wise
+            <a href="{% url 'departmentDashboard' %}" class="btn btn-outline-light">Department-wise
                 Statistics</a>
         </div>
         <div class="col-2">
-            <a href="{% url 'programDashboard' %}" class="btn btn-outline-light">Program-wise Statistics</a>
+            <a href="{% url 'programDashboard' %}" class="btn btn-outline-light  disabled">Program-wise Statistics</a>
         </div>
         <div class="col-2">
             <a href="{% url 'courseDashboard' %}" class="btn btn-outline-light">Course-wise Statistics</a>
         </div>
     </div>
     <hr>
-    <div class="row align-items-center mt-5">
+    <div class="row align-items-center mt-5 mb-5">
         <div id="cgpa_div" style="height: 400px;"></div>
     </div>
+    <hr>
+    <h1 class="mt-5">View Program Wise PLO Achievement Rate Distribution:</h1>
+    <form class="row align-items-center mt-4" action="{% url 'programDashboard' %}" method="POST">
+        <div class="col-4">
+            <div class="form lead row">
+                {% csrf_token %}
+                {{ form }}
+            </div>
+        </div>
+        <div class="col-2">
+            <input type="submit" class="form-control btn btn-success" style="color:ivory">
+        </div>
+    </form>
     <div class="row align-items-center mt-5 mb-5">
         <div id="PLO_div" style="height: 400px;"></div>
     </div>
 </div>
+
 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script type="text/javascript">
@@ -63,10 +77,11 @@
         //Preparing Data Heading
         var dataHeading = [];
         dataHeading.push("Year");
-        var dptList = JSON.parse("{{ dptList|escapejs }}");
+        var programList = JSON.parse("{{ programList|escapejs }}");
+
         var i;
-        for (i = 0; i < dptList.length; i++) {
-            dataHeading.push(dptList[i][0]);
+        for (i = 0; i < programList.length; i++) {
+            dataHeading.push(programList[i][0]);
         }
 
         var data = google.visualization.arrayToDataTable([
@@ -77,14 +92,14 @@
         ]);
 
         var options = {
-            title: 'Department-wise CGPA Comparison',
+            title: 'Program-wise CGPA Comparison',
             titleTextStyle: {
                 color: 'white',
                 fontSize: 20,
             },
             fontName: "Montserrat",
             backgroundColor: { fill: 'transparent' },
-            colors: ["#002A29", "#007A79", "#C7CEDF"],
+            colors: ["#0097a7", "#56c8d8", "#b4ffff"],
             seriesType: 'bars',
             hAxis: {
                 textStyle: { color: 'white' },
@@ -105,35 +120,29 @@
         var chart = new google.visualization.ComboChart(document.getElementById('cgpa_div'));
         chart.draw(data, options);
     }
-
     //PLO Chart
     function drawPLOChart() {
+
         var dataTable2 = JSON.parse("{{dataTable2|escapejs}}");
-        //Preparing Data Heading
-        var dataHeading = [];
-        dataHeading.push("Year");
-        var dptList = JSON.parse("{{ dptList|escapejs }}");
-        var i;
-        for (i = 0; i < dptList.length; i++) {
-            dataHeading.push(dptList[i][0]);
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'PLO');
+        data.addColumn('number', 'PLO Rate');
+
+        var j;
+        for (j = 0; j < dataTable2.length; j++) {
+            data.addRow(dataTable2[j]);
         }
 
-        var data = google.visualization.arrayToDataTable([
-            dataHeading,
-            dataTable2[0],
-            dataTable2[1],
-            dataTable2[2],
-        ]);
-
         var options = {
-            title: 'Department-wise PLO-Achievement Comparison',
+            title: 'PLO-Achievement Rate Comparison',
             titleTextStyle: {
                 color: 'white',
                 fontSize: 20,
             },
             fontName: "Montserrat",
             backgroundColor: { fill: 'transparent' },
-            colors: ["#7C7B89", "#F4D75E", "#F1E4DE"],
+            colors: ["#b2ebf2"],
             seriesType: 'bars',
             hAxis: {
                 textStyle: { color: 'white' },

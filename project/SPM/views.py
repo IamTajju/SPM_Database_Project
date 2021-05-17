@@ -570,7 +570,49 @@ def departmentDashboard(request):
 
 @allowedUsers(allowedRoles=['Higher Management'])
 def programDashboard(request):
-    return render(request, "SPM/programDashboard.html")
+    #[("name", totalStudents, 'program level', totalcredits, "dpt")]
+    programList = getPrograms()
+
+    # Making form and list for select
+    choices = []
+    for program in programList:
+        buffer = []
+        buffer.append(program[0])
+        buffer.append(program[0])
+        choices.append(tuple(buffer))
+
+    choices = tuple(choices)
+
+    class ProgramsList(forms.Form):
+        programs = forms.ChoiceField(
+            choices=choices, label="")
+
+    form = ProgramsList
+    #----------------------------------#
+    # Getting program name for highest CGPA and highest PLO rate
+    highestPrgmCGPA = getProgramHighestCGPA()
+    highestPrgmPLORate = getProgramHighestPLO()
+
+    selectedProgramName = programList[0][0]
+    if request.method == "POST":
+        form = ProgramsList(request.POST)
+        if form.is_valid():
+            selectedProgramName = form.cleaned_data["programs"]
+
+    print(selectedProgramName)
+    programWisePLODataTable = getProgramWisePLORate(selectedProgramName)
+    programWiseCGPADataTable = getProgramWiseCGPA(programList)
+    print(programWiseCGPADataTable)
+    context = {
+        "form": form,
+        "highestPrgmCGPA": highestPrgmCGPA,
+        "highestPrgmPLORate": highestPrgmPLORate,
+        "programName": selectedProgramName,
+        "programList": dumps(programList),
+        "dataTable1": dumps(programWiseCGPADataTable),
+        "dataTable2": dumps(programWisePLODataTable),
+    }
+    return render(request, "SPM/programDashboard.html", context)
 
 
 @allowedUsers(allowedRoles=['Higher Management'])
