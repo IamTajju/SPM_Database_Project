@@ -502,7 +502,6 @@ def schoolDashboard(request):
 
     # Find avg and highest for current year
     averagePLO = 0
-    averageCGPA = 0
     highestPLO = 0
     highestCGPA = 0.0
     highestSchoolPLO = ""
@@ -522,10 +521,9 @@ def schoolDashboard(request):
         float(averagePLO/(len(schoolWisePLODataTable[2]) - 1)), 2)
 
     context = {
-        "schools": schoolList,
         "schoolList": dumps(schoolList),
         "highestPLO": highestSchoolPLO,
-        "highestCGPA": highestCGPA,
+        "highestCGPA": highestSchoolCGPA,
         "avgPLO": averagePLO,
         "avgCGPA": round(averageCGPA, 2),
         "dataTable1": dumps(schoolWiseCGPADataTable),
@@ -536,7 +534,38 @@ def schoolDashboard(request):
 
 @allowedUsers(allowedRoles=['Higher Management'])
 def departmentDashboard(request):
-    return render(request, "SPM/departmentDashboard.html")
+
+    #[("name", totalStudents)]
+    departmentList = getDepartments()
+    # Data Tables for PLO and CGPA
+    DPTWiseCGPADataTable = getDepartmentWiseAverageCGPA(departmentList)
+    DPTWisePLODataTable = getDeparmentWisePLORate(departmentList)
+    # Find avg and highest for current year
+    highestPLO = 0
+    highestCGPA = 0.0
+    highestSchoolPLO = ""
+    highestSchoolCGPA = ""
+
+    # Looping through DataTable and finding stats for Current year
+    for i in range(len(DPTWisePLODataTable[2])-1):
+        if highestCGPA < DPTWiseCGPADataTable[2][i+1]:
+            highestCGPA = DPTWiseCGPADataTable[2][i+1]
+            highestSchoolCGPA = departmentList[i][0]
+
+        if highestPLO < DPTWisePLODataTable[2][i+1]:
+            highestPLO = DPTWisePLODataTable[2][i+1]
+            highestSchoolPLO = departmentList[i][0]
+
+    # ----------------------------------------------------------
+
+    context = {
+        "dptList": dumps(departmentList),
+        "highestPLO": highestSchoolPLO,
+        "highestCGPA": highestSchoolCGPA,
+        "dataTable1": dumps(DPTWiseCGPADataTable),
+        "dataTable2": dumps(DPTWisePLODataTable),
+    }
+    return render(request, "SPM/departmentDashboard.html", context)
 
 
 @allowedUsers(allowedRoles=['Higher Management'])

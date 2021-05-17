@@ -142,8 +142,8 @@ def getSchoolWiseAverageCGPA(schoolList):
 
 
 def getSchoolWisePLORate(schoolList):
-    sql_query = '''SELECT school_t.schoolName, COUNT(DISTINCT(ploevaluation_t.courseenrollment_id)) FROM ploevaluation_t, program_t, curriculum_t, plohistory_t, department_t, school_t, studentcourseenrollment_t, section_t WHERE ploevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.year = {} AND ploevaluation_t.plo_id = plohistory_t.plo_id AND plohistory_t.curriculum_id = curriculum_t.curriculum_id AND (curriculum_t.expirationDate IS NULL OR curriculum_t.expirationDate = '') AND curriculum_t.program_id = program_t.program_id AND program_t.department_id = department_t.department_id AND department_t.school_id = school_t.school_id AND school_t.schoolName = "{}" GROUP BY school_t.school_id;'''
-    sql_query2 = '''SELECT school_t.schoolName, COUNT(DISTINCT(ploevaluation_t.courseenrollment_id)) FROM ploevaluation_t, program_t, curriculum_t, plohistory_t, department_t, school_t, studentcourseenrollment_t, section_t WHERE ploevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.year = {} AND ploevaluation_t.plo_id = plohistory_t.plo_id AND plohistory_t.curriculum_id = curriculum_t.curriculum_id AND (curriculum_t.expirationDate IS NULL OR curriculum_t.expirationDate = '') AND curriculum_t.program_id = program_t.program_id AND program_t.department_id = department_t.department_id AND department_t.school_id = school_t.school_id AND ploevaluation_t.ploAchievementStatus = 'Y' AND school_t.schoolName="{}" GROUP BY school_t.school_id;'''
+    sql_query = '''SELECT school_t.schoolName, COUNT(ploevaluation_t.courseenrollment_id) FROM ploevaluation_t, program_t, curriculum_t, plohistory_t, department_t, school_t, studentcourseenrollment_t, section_t WHERE ploevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.year = {} AND ploevaluation_t.plo_id = plohistory_t.plo_id AND plohistory_t.curriculum_id = curriculum_t.curriculum_id AND (curriculum_t.expirationDate IS NULL OR curriculum_t.expirationDate = '') AND curriculum_t.program_id = program_t.program_id AND program_t.department_id = department_t.department_id AND department_t.school_id = school_t.school_id AND school_t.schoolName = "{}" GROUP BY school_t.school_id;'''
+    sql_query2 = '''SELECT school_t.schoolName, COUNT(ploevaluation_t.courseenrollment_id) FROM ploevaluation_t, program_t, curriculum_t, plohistory_t, department_t, school_t, studentcourseenrollment_t, section_t WHERE ploevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.year = {} AND ploevaluation_t.plo_id = plohistory_t.plo_id AND plohistory_t.curriculum_id = curriculum_t.curriculum_id AND (curriculum_t.expirationDate IS NULL OR curriculum_t.expirationDate = '') AND curriculum_t.program_id = program_t.program_id AND program_t.department_id = department_t.department_id AND department_t.school_id = school_t.school_id AND ploevaluation_t.ploAchievementStatus = 'Y' AND school_t.schoolName="{}" GROUP BY school_t.school_id;'''
 
     years = [2019, 2020, 2021]
     arrTable = []
@@ -165,6 +165,63 @@ def getSchoolWisePLORate(schoolList):
                     continue
             with connection.cursor() as cursor:
                 cursor.execute(sql_query2.format(year, school[0]))
+                row = cursor.fetchone()
+                if row != None:
+                    achieved = row[1]
+                else:
+                    yearTbl.append(0.0)
+                    continue
+            yearTbl.append(round(float(achieved/attempted), 2)*100)
+
+        arrTable.append(yearTbl)
+
+    return arrTable
+
+
+def getDepartmentWiseAverageCGPA(dptList):
+    sql_query = '''SELECT department_t.deparmentName, AVG(student_t.cgpa) FROM student_t, studentcourseenrollment_t, section_t, course_t, department_t WHERE student_t.student_id = studentcourseenrollment_t.student_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.course_id = course_t.course_id AND course_t.department_id = department_t.department_id AND section_t.year = {} AND department_t.deparmentName = "{}" GROUP BY department_t.department_id;'''
+    years = [2019, 2020, 2021]
+    arrTable = []
+    for year in years:
+        yearTbl = []
+        yearTbl.append(str(year))
+        for dpt in dptList:
+            with connection.cursor() as cursor:
+                cursor.execute(sql_query.format(year, dpt[0]))
+                row = cursor.fetchone()
+                if row != None:
+                    yearTbl.append(round(float(row[1]), 2))
+                else:
+                    yearTbl.append(0.00)
+        arrTable.append(yearTbl)
+
+    return arrTable
+
+
+def getDeparmentWisePLORate(dptList):
+    sql_query = '''SELECT department_t.department_id, COUNT(ploevaluation_t.courseenrollment_id) FROM ploevaluation_t, program_t, curriculum_t, plohistory_t, department_t, studentcourseenrollment_t, section_t WHERE ploevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND ploevaluation_t.plo_id = plohistory_t.plo_id AND plohistory_t.curriculum_id = curriculum_t.curriculum_id AND (curriculum_t.expirationDate IS NULL OR curriculum_t.expirationDate = '') AND curriculum_t.program_id = program_t.program_id AND program_t.department_id = department_t.department_id AND section_t.year = {} AND department_t.deparmentName = "{}" GROUP BY department_t.department_id;'''
+    sql_query2 = '''SELECT department_t.department_id, COUNT(ploevaluation_t.courseenrollment_id) FROM ploevaluation_t, program_t, curriculum_t, plohistory_t, department_t, studentcourseenrollment_t, section_t WHERE ploevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND ploevaluation_t.plo_id = plohistory_t.plo_id AND plohistory_t.curriculum_id = curriculum_t.curriculum_id AND (curriculum_t.expirationDate IS NULL OR curriculum_t.expirationDate = '') AND curriculum_t.program_id = program_t.program_id AND program_t.department_id = department_t.department_id AND section_t.year = {} AND department_t.deparmentName = "{}" AND ploevaluation_t.ploAchievementStatus = 'Y' GROUP BY department_t.department_id;'''
+
+    years = [2019, 2020, 2021]
+    arrTable = []
+
+    for year in years:
+        yearTbl = []
+        yearTbl.append(str(year))
+
+        for dpt in dptList:
+            attempted = 0
+            achieved = 0
+            with connection.cursor() as cursor:
+                cursor.execute(sql_query.format(year, dpt[0]))
+                row = cursor.fetchone()
+                if row != None:
+                    attempted = row[1]
+                else:
+                    yearTbl.append(0.0)
+                    continue
+            with connection.cursor() as cursor:
+                cursor.execute(sql_query2.format(year, dpt[0]))
                 row = cursor.fetchone()
                 if row != None:
                     achieved = row[1]
