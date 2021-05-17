@@ -1,0 +1,224 @@
+{% extends "SPM/layout.html" %}
+
+{% block body %}
+
+<div class="container mt-5">
+    <div class="row align-items-center mt-5">
+        <div class="col-6">
+            <h1 class="display-4">Historical Statistics</h1>
+        </div>
+        <div class="col-6">
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a href="http://127.0.0.1:8000/SPM/" class="nav-link" style="color:ivory;">Create
+                        Assessment</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'SemesterStats' %}" class="nav-link" style="color:ivory;">Semester Statistics</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'FacultyStats' %}" class="nav-link active" aria-current="page">Historical
+                        Statistics</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <hr>
+    <form class="row align-items-end mt-5" action="{% url 'SemesterStats' %}" method="POST">
+        <div class="col-9">
+            <h1 class="display-6">Faculty: {{ facultyName }}</h1>
+        </div>
+        <div class="col-2">
+            <div class="form-label lead row">
+                {% csrf_token %}
+                {{ form }}
+            </div>
+        </div>
+        <div class="col-1">
+            <input type="submit" class="form-control btn btn-success" style="color:ivory">
+        </div>
+    </form>
+    <div class="row align-items-center mt-5">
+        <div id="CO_div"></div>
+    </div>
+    <div class="row align-items-center mt-5 mb-5">
+        <div id="PLO_div"></div>
+    </div>
+    <div class="row align-items-center mt-5 mb-5">
+        <div id="CGPA_chart"></div>
+    </div>
+</div>
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+<script type="text/javascript">
+    // Load google charts
+    google.charts.load('current', { packages: ['corechart', 'bar'] });
+    google.charts.setOnLoadCallback(drawCOChart);
+    google.charts.setOnLoadCallback(drawPLOChart);
+    google.charts.setOnLoadCallback(CGPAChart);
+    //CO Chart
+    function drawCOChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Course Outcome');
+
+        var i;
+        var noOfSections = JSON.parse("{{noOfSection|escapejs}}");
+        for (i = 0; i < noOfSections; i++) {
+            var currSectionNo = (i + 1).toString();
+            var str = "Section ";
+            var finalStr = str.concat(currSectionNo);
+            data.addColumn('number', finalStr);
+        }
+
+        var noOfCOs = JSON.parse("{{noOfCOs|escapejs}}");
+
+        var j;
+        var sectionValues = JSON.parse("{{data|escapejs}}");
+        for (j = 0; j < noOfCOs; j++) {
+            var currCO = (j + 1).toString();
+            var str = "CO ";
+            var finalStr = str.concat(currCO);
+            var arr = [];
+            arr.push(finalStr);
+            var k;
+            for (k = 0; k < noOfSections; k++) {
+                arr.push(sectionValues[k][j])
+            }
+            data.addRow(arr);
+        }
+        var options = {
+            title: 'Average Course Outcome Achievement Rate',
+            titleTextStyle: {
+                color: 'white'
+            },
+            colors: ['#4dd0e1', '#00838f'],
+            fontName: "Montserrat",
+            backgroundColor: { fill: 'transparent' },
+            hAxis: {
+                title: 'Course Outcomes',
+                titleTextStyle: {
+                    color: 'white'
+                },
+                textStyle: { color: 'white' },
+            },
+            vAxis: {
+                title: 'Achievment Rate in %',
+                titleTextStyle: {
+                    color: 'white'
+                },
+                textStyle: { color: 'white' },
+            },
+            legend: {
+                textStyle: {
+                    color: 'white'
+                }
+            }
+        };
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('CO_div'));
+        chart.draw(data, options);
+    }
+
+    //PLO Chart
+    function drawPLOChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Program Learning Outcome');
+
+        var i;
+        var noOfSections = JSON.parse("{{noOfSection|escapejs}}");
+        for (i = 0; i < noOfSections; i++) {
+            var currSectionNo = (i + 1).toString();
+            var str = "Section ";
+            var finalStr = str.concat(currSectionNo);
+            data.addColumn('number', finalStr);
+        }
+
+        var noOfPLOs = JSON.parse("{{noOfPLOs|escapejs}}");
+
+        var j;
+        var sectionValues = JSON.parse("{{data2|escapejs}}");
+        for (j = 0; j < noOfPLOs; j++) {
+            var currPLO = (j + 1).toString();
+            var str = "PLO ";
+            var finalStr = str.concat(currPLO);
+            var arr = [];
+            arr.push(finalStr);
+            var k;
+            for (k = 0; k < noOfSections; k++) {
+                arr.push(sectionValues[k][j])
+            }
+            data.addRow(arr);
+        }
+        var options = {
+            title: 'Average Program Learning Achievement Rate',
+            colors: ['#4db6ac', '#00695c'],
+            titleTextStyle: {
+                color: 'white'
+            },
+            fontName: "Montserrat",
+            backgroundColor: { fill: 'transparent' },
+            hAxis: {
+                title: 'Program Learning Outcomes',
+                titleTextStyle: {
+                    color: 'white'
+                },
+                textStyle: { color: 'white' },
+            },
+            vAxis: {
+                title: 'Achievment Rate in %',
+                titleTextStyle: {
+                    color: 'white'
+                },
+                textStyle: { color: 'white' },
+            },
+            legend: {
+                textStyle: {
+                    color: 'white'
+                }
+            }
+        };
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('PLO_div'));
+        chart.draw(data, options);
+    }
+
+    function CGPAChart() {
+        var data = google.visualization.arrayToDataTable([
+            ['Year', 'GPA'],
+            ['2004', 3.1],
+            ['2005', 3.2],
+            ['2006', 1.3],
+            ['2007', 2.3]
+        ]);
+
+        var options = {
+            title: 'GPA Trend',
+            titleTextStyle: {
+                color: 'white'
+            },
+            curveType: 'function',
+            legend: { position: 'bottom' },
+            fontName: "Montserrat",
+            backgroundColor: { fill: 'transparent' },
+            series: {
+                0: { color: '#fdd835' },
+            },
+            hAxis: {
+                textStyle: { color: 'white' },
+            },
+            vAxis: {
+                textStyle: { color: 'white' },
+            },
+            legend: {
+                textStyle: {
+                    color: 'white'
+                }
+            }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('CGPA_chart'));
+        chart.draw(data, options);
+    }
+</script>
+{% endblock %}

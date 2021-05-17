@@ -1,0 +1,26 @@
+{% extends "SPM/loginlayout.html" %}
+
+{% block body %}
+
+<form action="{% url 'login' %}" method="POST">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="UsernameInput" class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" id="UsernameInput" aria-describedby="UsernameHelp">
+        <div id="UsernameHelp" class="form-text">Please enter the unique username provided by your system administrator
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="Password" class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" id="Password">
+    </div>
+    <button type="submit" class="btn btn-primary">Login</button>
+</form>
+
+{% if message%}
+<div class="alert alert-info mt-3" role="alert">
+    {{message}}
+</div>
+{% endif %}
+
+{% endblock %}

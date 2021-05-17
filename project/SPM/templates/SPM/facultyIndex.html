@@ -1,0 +1,123 @@
+{% extends "SPM/layout.html" %}
+
+{% block body %}
+
+<div class="container mt-5">
+    <div class="row align-items-center mt-5">
+        <div class="col-6">
+            <h1 class="display-4">Hello {{name}}</h1>
+        </div>
+        <div class="col-6">
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a href="http://127.0.0.1:8000/SPM/" class="nav-link active" aria-current="page">Create
+                        Assessment</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'SemesterStats' %}" class="nav-link" style="color:ivory;">Semester Statistics</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'FacultyStats' %}" class="nav-link" style="color:ivory;">Historical Statistics</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <hr>
+
+    <div class="row mt-2 mb-3">
+        <h3 class="h3 mb-3">Courses this Semester:</h3>
+        <table class="table table-light table-hover " style="color: rgb(41, 41, 37);">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Course</th>
+                    <th scope="col">Section No</th>
+                    <th scope="col">Total Students</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for deet in currentSemDeets %}
+                <tr>
+                    <td>{{ deet.0 }}</td>
+                    <td>{{ deet.1 }}</td>
+                    <td>{{ deet.2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <hr>
+</div>
+
+
+
+<!--Second Container Start From Here-->
+<div class="container mt-2 mb-3">
+
+    <h1 class="display-5">Assessments</h1>
+
+    <div class="row mt-3 mb-1">
+        <h3 class="h3">Assessments Summary Table</h3>
+        <table class="table table-stripped table-light table-hover " style="color: rgb(41, 41, 37);">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Course</th>
+                    <th scope="col">Section No</th>
+                    <th scope="col">Assessment Type</th>
+                    <th scope="col">Assessment Weightage</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assessment in assessments %}
+                <tr>
+                    <td>{{ assessment.0}}</td>
+                    <td>{{ assessment.1}}</td>
+                    <td>{{ assessment.2}}</td>
+                    <td>{{ assessment.3}}</td>
+                    {% for key, value in dict.items %}
+                    {% if key == assessment.4 and value == 0 %}
+                    <td><a href="{% url 'marksheet' assessment.4 %}" class="btn btn-info" style="color:ivory;">Insert
+                            marksheet</a></td>
+                    {% elif key == assessment.4 and value == 1%}
+                    <td><a class="btn btn-secondary disabled">Insert marksheet</a></td>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+                <!--Loop End-->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row mt-3 mb-3">
+        <h2 class="h2">Create Assessment</h2>
+        <div class="col-6 ">
+            <form action="{% url 'facultyIndex' %}" method="POST" class="list-group lead" style="  width: 100%;
+            padding: 10px 0;
+            font-size: 16px;
+            color: #fff;
+            margin-bottom: 30px;
+            border: none;
+            border-bottom: 1px solid #fff;
+            outline: none;
+            background: transparent;">
+                {% csrf_token %}
+                {{ form }}
+                <div class="col-6 mt-3">
+                    <button type="submit" class="btn btn-success">Create
+                        Assignment</button>
+                </div>
+                {% if message %}
+                <div class="col-6 mt-3">
+                    <a href="mapQuestions" class="btn btn-primary">Map Questions to COs</a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+        {% if message %}
+        <h4 class="h4">{{ message }}</h4>
+        {% endif %}
+    </div>
+    <hr>
+</div>
+{% endblock %}

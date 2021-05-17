@@ -1,0 +1,49 @@
+{% extends "SPM/layout.html" %}
+
+{% block body %}
+
+<div class="container mt-5">
+    <div class="row align-items-center mt-5">
+        <div class="col-7">
+            <h1 class="display-4">Map Questions to Course Outcomes</h1>
+        </div>
+        <div class="col-5">
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a href="http://127.0.0.1:8000/SPM/" class="nav-link active" aria-current="page">Create
+                        Assessment</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'SemesterStats' %}" class="nav-link" style="color:ivory;">Semester Statistics</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'FacultyStats' %}" class="nav-link" style="color:ivory;">Historical Statistics</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <hr>
+</div>
+<div class="container">
+    <div class="row mt-3 mb-3">
+        <h2 class="h2">Add Question</h2>
+        <div class="col-6 ">
+            <form action="{% url 'mapQuestions' %}" method="POST" class="list-group lead">
+                {% csrf_token %}
+                {{ form2 }}
+                <div class="col-6 mt-3 mb-3">
+                    <button type="submit" class="btn btn-info" style="color:ivory;">Add Question</button>
+                </div>
+            </form>
+        </div>
+        <div>
+            <a type="button" class="btn btn-success" href="{% url 'facultyIndex'%}">Done</a>
+            {% if message %}
+            <h4 class="h4 mt-3">{{ message }}</h4>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

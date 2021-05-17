@@ -1,0 +1,238 @@
+{% extends "SPM/layout.html" %}
+{% load static %}
+{% block body %}
+<div class="container mt-5">
+    <div class="row align-items-center mt-5 ">
+        <div class="col-6">
+            <img src="{% static 'SPM/images/iub.png' %}" height="300px" />
+        </div>
+        <div class="col-6">
+            <div class="row">
+                <div class="col-6">
+                    <div class="card-body text-white bg-primary">
+                        <h3 class="card-title">Total Students</h3>
+                        <h5 class="card-text">{{ totalStudents }} Enrolled Undergraduate Students</h5>
+                        <p class="card-text">Average CGPA: {{avgCGPA}}</p>
+                        <a href="{% url 'courseDashboard' %}" class="btn btn-outline-light">Course Statistics</a>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card-body text-white bg-success">
+                        <h3 class="card-title">Schools</h3>
+                        <h5 class="card-text">{{ schools|length }} Active Schools</h5>
+                        <h6 class="card-text">Highest Enrollment:</h6>
+
+                        <p class="card-text">{{ highestSchool }}</p>
+                        <a href="{% url 'schoolDashboard' %}" class="btn btn-outline-light">School-wise Statistics</a>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-5">
+                <div class="col-6">
+                    <div class="card-body text-white bg-info">
+                        <h3 class="card-title">Departments</h3>
+                        <h5 class="card-text">{{ dpts|length }} Active Departments</h5>
+                        <h6 class="card-text">Highest Enrollment:</h6>
+                        <p class="card-text">{{ highestDpt }}</p>
+                        <a href="{% url 'departmentDashboard' %}" class="btn btn-outline-light">Department-wise
+                            Statistics</a>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card-body text-white bg-warning">
+                        <h3 class="card-title">Programs</h3>
+                        <h5 class="card-text">{{ programs|length }} Active Programs</h5>
+                        <h6 class="card-text">Highest Enrollment:</h6>
+                        <p class="card-text">{{ highestPrgm }}</p>
+                        <a href="{% url 'programDashboard' %}" class="btn btn-outline-light">Program-wise Statistics</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div class="row mt-5 mb-5">
+        <h3>Program List Table</h3>
+        <table class="table table-stripped table-light table-hover " style="color: rgb(41, 41, 37);">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Program Name</th>
+                    <th scope="col">Total Students</th>
+                    <th scope="col">Program Level</th>
+                    <th scope="col">Total Credits</th>
+                    <th scope="col">Department Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for program in programs %}
+                <tr>
+                    <td>{{ program.0 }}</td>
+                    <td>{{ program.1 }}</td>
+                    <td>{{ program.2 }}</td>
+                    <td>{{ program.3 }}</td>
+                    <td>{{ program.4 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="row mt-5">
+        <h3>Enrollment Distribution Statistics</h3>
+        <div class="row" id="schoolEnrollmentAreaChart" style="height: 500px;">
+        </div>
+        <div class="row" id="departmentEnrollmentBarChart" style="height: 500px;">
+        </div>
+        <div class="row" id="programEnrollmentBarChart" style="height: 500px;">
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+    google.charts.load('current', { 'packages': ['corechart'] });
+    google.charts.setOnLoadCallback(drawSchoolWiseAreaChart);
+    google.charts.setOnLoadCallback(drawDepartmentWiseBarChart);
+    google.charts.setOnLoadCallback(drawProgramWiseBarChart);
+
+    function drawSchoolWiseAreaChart() {
+        var dataTable1 = JSON.parse("{{dataTable1|escapejs}}");
+        //Preparing Data Heading
+        var dataHeading = [];
+        dataHeading.push("Year");
+        var schoolList = JSON.parse("{{ schoolList|escapejs }}");
+        var i;
+        for (i = 0; i < schoolList.length; i++) {
+            dataHeading.push(schoolList[i][0]);
+        }
+
+        var data = google.visualization.arrayToDataTable([
+            dataHeading,
+            dataTable1[0],
+            dataTable1[1],
+            dataTable1[2],
+        ]);
+
+        var options = {
+            title: 'School-wise Annual Enrollment Distribution',
+            titleTextStyle: {
+                color: 'white',
+                fontSize: 20,
+            },
+            fontName: "Montserrat",
+            backgroundColor: { fill: 'transparent' },
+            colors: ['#FFA800', '#76DCD7'],
+            isStacked: true,
+            hAxis: {
+                textStyle: { color: 'white' },
+            },
+            vAxis: {
+                title: 'No of Students',
+                titleTextStyle: {
+                    color: 'white'
+                },
+                textStyle: { color: 'white' },
+            },
+            legend: {
+                textStyle: {
+                    color: 'white'
+                }
+            }
+        };
+        var chart = new google.visualization.SteppedAreaChart(document.getElementById('schoolEnrollmentAreaChart'));
+        chart.draw(data, options);
+    }
+
+    function drawDepartmentWiseBarChart() {
+        var dataTable2 = JSON.parse("{{dataTable2|escapejs}}");
+        //Preparing Data Heading
+        var dataHeading = [];
+        dataHeading.push("Year");
+        var dptList = JSON.parse("{{ dptList|escapejs }}");
+        var i;
+        for (i = 0; i < dptList.length; i++) {
+            dataHeading.push(dptList[i][0]);
+        }
+
+        var data = google.visualization.arrayToDataTable([
+            dataHeading,
+            dataTable2[0],
+            dataTable2[1],
+            dataTable2[2],
+        ]);
+
+        var options = {
+            title: 'Department-wise Annual Enrollment Distributon',
+            titleTextStyle: {
+                color: 'white',
+                fontSize: 20,
+            },
+            fontName: "Montserrat",
+            colors: ['#9ECBE9', '#F58618', '#FFC079'],
+            backgroundColor: { fill: 'transparent' },
+            isStacked: true,
+            hAxis: {
+                title: 'Total Students',
+                titleTextStyle: { color: 'white' },
+                textStyle: { color: 'white' },
+            },
+            vAxis: {
+                textStyle: { color: 'white' },
+            },
+            legend: {
+                textStyle: {
+                    color: 'white'
+                }
+            }
+        };
+        var chart = new google.visualization.BarChart(document.getElementById('departmentEnrollmentBarChart'));
+        chart.draw(data, options);
+    }
+
+    function drawProgramWiseBarChart() {
+        var dataTable3 = JSON.parse("{{dataTable3|escapejs}}");
+        //Preparing Data Heading
+        var dataHeading = [];
+        dataHeading.push("Year");
+        var programList = JSON.parse("{{ programList|escapejs }}");
+        var i;
+        for (i = 0; i < programList.length; i++) {
+            dataHeading.push(programList[i][0]);
+        }
+
+        var data = google.visualization.arrayToDataTable([
+            dataHeading,
+            dataTable3[0],
+            dataTable3[1],
+            dataTable3[2],
+        ]);
+
+        var options = {
+            title: 'Program-wise Annual Enrollment Distributon',
+            titleTextStyle: {
+                color: 'white',
+                fontSize: 20,
+            },
+            fontName: "Montserrat",
+            colors: ['#333333', '#00AABB', '#FAE372'],
+            backgroundColor: { fill: 'transparent' },
+            isStacked: true,
+            hAxis: {
+                title: 'Total Students',
+                titleTextStyle: { color: 'white' },
+                textStyle: { color: 'white' },
+            },
+            vAxis: {
+                textStyle: { color: 'white' },
+            },
+            legend: {
+                textStyle: {
+                    color: 'white'
+                }
+            }
+        };
+        var chart = new google.visualization.BarChart(document.getElementById('programEnrollmentBarChart'))
+        chart.draw(data, options);
+    }
+</script>
+{% endblock %}

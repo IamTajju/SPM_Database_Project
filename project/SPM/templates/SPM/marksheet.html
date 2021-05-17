@@ -1,0 +1,108 @@
+{% extends "SPM/layout.html" %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row align-items-center mt-5">
+        <div class="col-6">
+            <h1 class="display-4">Insert Marks</h1>
+        </div>
+        <div class="col-6">
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a href="http://127.0.0.1:8000/SPM/" class="nav-link active" aria-current="page">Create
+                        Assessment</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'SemesterStats' %}" class="nav-link" style="color:ivory;">Semester Statistics</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'FacultyStats' %}" class="nav-link" style="color:ivory;">Historical Statistics</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <hr>
+    <div class="row align-items-center mt-2">
+        <div class="col-3">
+            <h5>Course ID: <span class="badge bg-secondary lead">{{ assessmentInfo.0 }}</span></h5>
+            <hr>
+        </div>
+        <div class="col-3">
+            <h5>Section No: <span class=" badge bg-primary lead">{{ assessmentInfo.1 }}</span></h5>
+            <hr>
+        </div>
+        <div class="col-3">
+            <h5>Assessment Type: <span class="badge bg-success lead">{{ assessmentInfo.2 }}</span></h5>
+            <hr>
+        </div>
+        <div class="col-3">
+            <h5>Assessment Weight: <span class="badge bg-warning lead">{{ assessmentInfo.3 }}</span></h5>
+            <hr>
+        </div>
+    </div>
+    <div class="row align-items-center mt-2">
+        <table class="table table-light table-hover " style="color: rgb(41, 41, 37);">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Student ID</th>
+                    {% for question in questions%}
+                    <th scope="col" style="text-align: center;">Q No: {{ question.1 }} Marks: {{ question.2}}
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for id in courseEnrollmentIDs%}
+                <tr>
+                    <td>{{ id.0 }}</td>
+                    {% for question in questions%}
+                    <td>
+                        <form action="{% url 'marksheet' assessmentID %}" method="POST" class="row align-items-center">
+                            {% csrf_token %}
+                            <div class="col-6">
+                                <input type="number" name="{{ question.0 }},{{ id.1 }}" id="{{ question.0 }},{{ id.1 }}"
+                                    class="form-control form-control-sm">
+                            </div>
+                            <div class="col-6">
+                                <input type="submit" id="{{ id.1 }},{{ question.0 }}"
+                                    class="form-control btn btn-outline-success btn-sm">
+                            </div>
+                        </form>
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <a type="button" class="btn btn-success mb-5" href="{% url 'facultyIndex'%}">Done</a>
+</div>
+
+<script>
+    //Checking if method is post.
+    var form = document.forms, i = form.length - 1;
+    for (; i >= 0; i--) {
+        if (/post/i.test(form[i].method)) form[i].action += "#method-post";
+    }
+
+    //check whether the hash contains `#method-post`
+    var is_post = location.hash.indexOf("#method-post") != -1;
+    if (is_post) {
+        var cellIDs = JSON.parse("{{cellIDs|escapejs}}");
+        var i;
+        for (i = 0; i < cellIDs.length; i++) {
+            var x = document.getElementById(cellIDs[i]);
+            x.disabled = true;
+        }
+
+        var buttonIDs = JSON.parse("{{buttonIDs|escapejs}}");
+        var j;
+        for (j = 0; j < buttonIDs.length; j++) {
+            var y = document.getElementById(buttonIDs[j]);
+            y.disabled = true;
+        }
+    }
+    //Optionally, remove the hash to not interfere with the scripts at the page:
+    //location.hash = location.hash.replace('#method-post', '');
+</script>
+{% endblock %}
