@@ -82,7 +82,7 @@
         </div>
         <div class="row" id="departmentEnrollmentBarChart" style="height: 500px;">
         </div>
-        <div class="row" id="programEnrollmentBarChart" style="height: 500px;">
+        <div class="row mb-5" id="programEnrollmentBarChart" style="height: 500px;">
         </div>
     </div>
 </div>
@@ -136,7 +136,8 @@
             legend: {
                 textStyle: {
                     color: 'white'
-                }
+                },
+                position: 'bottom'
             }
         };
         var chart = new google.visualization.SteppedAreaChart(document.getElementById('schoolEnrollmentAreaChart'));
@@ -182,7 +183,8 @@
             legend: {
                 textStyle: {
                     color: 'white'
-                }
+                },
+                position: 'bottom'
             }
         };
         var chart = new google.visualization.BarChart(document.getElementById('departmentEnrollmentBarChart'));
@@ -228,7 +230,8 @@
             legend: {
                 textStyle: {
                     color: 'white'
-                }
+                },
+                position: 'bottom'
             }
         };
         var chart = new google.visualization.BarChart(document.getElementById('programEnrollmentBarChart'))

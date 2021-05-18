@@ -46,7 +46,8 @@
         <div id="cgpa_div" style="height: 400px;"></div>
     </div>
     <hr>
-    <h1 class="mt-5">View Program Wise PLO Achievement Rate Distribution:</h1>
+
+    <h1 class="mt-5">View Program-wise PLO Achievement Rate Distribution:</h1>
     <form class="row align-items-center mt-4" action="{% url 'programDashboard' %}" method="POST">
         <div class="col-4">
             <div class="form lead row">
@@ -60,6 +61,29 @@
     </form>
     <div class="row align-items-center mt-5 mb-5">
         <div id="PLO_div" style="height: 400px;"></div>
+    </div>
+    <hr>
+
+    <div class="row mt-5 mb-5">
+        <h3>Program Learning Outcome Description</h3>
+        <table class="table table-stripped table-light table-hover table-bordered" style="color: rgb(41, 41, 37);">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">PLO</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Description </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for plo in ploTable %}
+                <tr>
+                    <td>{{ plo.0 }}</td>
+                    <td>{{ plo.1 }}</td>
+                    <td>{{ plo.2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -114,7 +138,8 @@
             legend: {
                 textStyle: {
                     color: 'white'
-                }
+                },
+                position: 'bottom'
             },
         };
         var chart = new google.visualization.ComboChart(document.getElementById('cgpa_div'));
@@ -153,11 +178,13 @@
                     color: 'white'
                 },
                 textStyle: { color: 'white' },
+                maxValue: 100
             },
             legend: {
                 textStyle: {
                     color: 'white'
-                }
+                },
+                position: 'bottom'
             },
         };
         var chart = new google.visualization.ColumnChart(document.getElementById('PLO_div'));

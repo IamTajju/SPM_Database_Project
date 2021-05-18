@@ -1,0 +1,191 @@
+{% extends "SPM/layout.html" %}
+{% load static %}
+{% block body %}
+<div class="container mt-5">
+    <div class="row align-items-center mt-5 ">
+        <div class="col-7">
+            <h1 class="display-1">Course-wise Performance Statistics</h1>
+        </div>
+        <div class="col-5">
+            <div class="row">
+                <div class="col">
+                    <div class="card-body text-white bg-success">
+                        <h5 class="card-text">Highest PLO Rate</h5>
+                        <p class="card-text">{{ highestPrgmPLORate }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-evenly mt-5">
+        <div class="col-2">
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-light">Main Dashboard</a>
+        </div>
+        <div class="col-2">
+            <a href="{% url 'schoolDashboard' %}" class="btn btn-outline-light">School-wise Statistics</a>
+        </div>
+        <div class="col-3">
+            <a href="{% url 'departmentDashboard' %}" class="btn btn-outline-light">Department-wise
+                Statistics</a>
+        </div>
+        <div class="col-2">
+            <a href="{% url 'programDashboard' %}" class="btn btn-outline-light">Program-wise Statistics</a>
+        </div>
+        <div class="col-2">
+            <a href="{% url 'courseDashboard' %}" class="btn btn-outline-light disabled">Course-wise Statistics</a>
+        </div>
+    </div>
+    <hr>
+    <form class="row align-items-center mt-4" action="{% url 'courseDashboard' %}" method="POST">
+        <div class="col-4">
+            <div class="form lead row">
+                {% csrf_token %}
+                {{ form }}
+            </div>
+        </div>
+        <div class="col-2">
+            <input type="submit" class="form-control btn btn-success" style="color:ivory">
+        </div>
+    </form>
+    <div class="row mt-5">
+        <h1 class="display-6" style="text-align: center; color:whitesmoke;">{{ courseName }}</h1>
+    </div>
+    <div class=" row align-items-center mt-1">
+        <div class="row" id="CO_div" style="height: 500px;"></div>
+        <div class="col-12 mt-5 mb-5">
+            <h3>CO to PLO Mapping</h3>
+            <table class="table table-stripped table-dark table-hover table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Course Outcome</th>
+                        <th scope="col">Mapped to</th>
+                        <th scope="col">Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for co in map %}
+                    <tr>
+                        <td>{{ co.0 }}</td>
+                        <td>{{ co.1 }}</td>
+                        <td>{{ co.2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <hr>
+    <div class="row align-items-center mt-5 mb-5">
+        <div id="PLO_div" style="height: 500px;"></div>
+    </div>
+</div>
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+<script type="text/javascript">
+    // Load google charts
+    google.charts.load('current', { packages: ['corechart', 'bar'] });
+    google.charts.setOnLoadCallback(drawCOChart);
+    google.charts.setOnLoadCallback(drawPLOChart);
+    google.charts.setOnLoadCallback(drawProgressChart);
+    //CO Chart
+    function drawCOChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Course Outcome');
+        data.addColumn('number', '2019');
+        data.addColumn('number', '2020');
+        data.addColumn('number', '2021');
+
+        var j;
+        var dataTable1 = JSON.parse("{{dataTable1|escapejs}}");
+        for (j = 0; j < dataTable1.length; j++) {
+            data.addRow(dataTable1[j]);
+        }
+        var options = {
+            title: 'Course Outcome Achievement Rate',
+            colors: ['#41E0CB', '#329487', '#E07141'],
+            titleTextStyle: {
+                color: 'white'
+            },
+            fontName: "Montserrat",
+            backgroundColor: { fill: 'transparent' },
+            hAxis: {
+                title: 'Course Outcomes',
+                titleTextStyle: {
+                    color: 'white'
+                },
+                textStyle: { color: 'white' },
+            },
+            vAxis: {
+                title: 'Achievment Rate in %',
+                titleTextStyle: {
+                    color: 'white'
+                },
+                textStyle: { color: 'white' },
+                max: 100,
+                min: 0
+            },
+            legend: {
+                textStyle: {
+                    color: 'white',
+                    fontSize: 14
+                },
+                position: 'bottom'
+            }
+        };
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('CO_div'));
+        chart.draw(data, options);
+    }
+
+    //PLO Chart
+    function drawPLOChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Program Learning Outcome');
+        data.addColumn('number', '2019');
+        data.addColumn('number', '2020');
+        data.addColumn('number', '2021');
+
+        var j;
+        var dataTable2 = JSON.parse("{{dataTable2|escapejs}}");
+        for (j = 0; j < dataTable2.length; j++) {
+            data.addRow(dataTable2[j]);
+        }
+        var options = {
+            title: 'Program Learning Outcome Achievement Rate',
+            colors: ['#FFAA63', '#E08941', '#41C9E0'],
+            titleTextStyle: {
+                color: 'white'
+            },
+            fontName: "Montserrat",
+            backgroundColor: { fill: 'transparent' },
+            hAxis: {
+                title: 'Program Learning Outcomes',
+                titleTextStyle: {
+                    color: 'white'
+                },
+                textStyle: { color: 'white' },
+            },
+            vAxis: {
+                title: 'Achievment Rate in %',
+                titleTextStyle: {
+                    color: 'white'
+                },
+                textStyle: { color: 'white' },
+                max: 100,
+                min: 0
+            },
+            legend: {
+                textStyle: {
+                    color: 'white',
+                    fontSize: 14
+                },
+                position: 'bottom'
+            }
+        };
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('PLO_div'));
+        chart.draw(data, options);
+    }
+</script>
+{% endblock %}

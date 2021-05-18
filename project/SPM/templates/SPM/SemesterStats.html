@@ -42,7 +42,7 @@
     <div class="row align-items-center mt-5">
         <div class="col" id="SemProgressBar"></div>
     </div>
-    <div class="row align-items-center mt-5">
+    <div class=" row align-items-center mt-5">
         <div id="CO_div"></div>
     </div>
     <div class="row align-items-center mt-5 mb-5">
@@ -188,8 +188,8 @@
     function drawProgressChart() {
         var sectionProgress = JSON.parse("{{sectionProgress|escapejs}}");
         var data = google.visualization.arrayToDataTable([
-            [' ', 'Progress',],
-            [' ', sectionProgress],
+            ['', 'Progress',],
+            ['', sectionProgress],
         ]);
         var materialOptions = {
             title: 'Current Semester Progress %',
@@ -200,7 +200,6 @@
             fontName: "Montserrat",
             backgroundColor: { fill: 'transparent' },
             colors: ['#ffe0b2'],
-            'width': 1000,
             'height': 150,
             hAxis: {
                 textStyle: { color: 'white' },
@@ -210,11 +209,7 @@
             vAxis: {
                 textStyle: { color: 'white' },
             },
-            legend: {
-                textStyle: {
-                    color: 'white'
-                },
-            }
+            legend: 'none'
         };
         var chart = new google.visualization.BarChart(document.getElementById('SemProgressBar'));
         chart.draw(data, materialOptions);

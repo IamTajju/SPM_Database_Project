@@ -60,3 +60,61 @@ def highestEnrollment(list, i, j):
             highest = entity[i]
             Name = entity[j]
     return Name
+
+
+def getAllCourses():
+    sql_query = '''SELECT course_t.course_id FROM course_t;'''
+    courses = []
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query)
+        for row in cursor.fetchall():
+            courses.append(row[0])
+    return courses
+
+
+def getPLOFromCourse(courseID):
+    sql_query = '''SELECT co_t.plo_id FROM co_t WHERE co_t.course_id = "{}";'''
+    plos = []
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query.format(courseID))
+        for row in cursor.fetchall():
+            plos.append(row[0])
+    return plos
+
+
+def getCOFromCourse(courseID):
+    sql_query = '''SELECT co_t.co_id FROM co_t WHERE co_t.course_id = "{}";'''
+    cos = []
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query.format(courseID))
+        for row in cursor.fetchall():
+            cos.append(row[0])
+    return cos
+
+
+def getPLOdeetsFromProgram(programName):
+    sql_query = '''SELECT plo_t.plo_id, plo_t.ploName, plo_t.ploDescription FROM plo_t, plohistory_t, curriculum_t, program_t WHERE plo_t.plo_id = plohistory_t.plo_id AND plohistory_t.curriculum_id = curriculum_t.curriculum_id AND curriculum_t.program_id = program_t.program_id AND program_t.programName = "{}";'''
+    deets = []
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query.format(programName))
+        for row in cursor.fetchall():
+            buffer = []
+            buffer.append("PLO " + row[0][(len(row[0])-2):len(row[0])])
+            buffer.append(row[1])
+            buffer.append(row[2])
+            deets.append(buffer)
+    return deets
+
+
+def getCOtoPLOMapping(courseID):
+    sql_query = '''SELECT co_t.co_id, co_t.plo_id, co_t.coDescription FROM co_t WHERE co_t.course_id = "{}";'''
+    deets = []
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query.format(courseID))
+        for row in cursor.fetchall():
+            buffer = []
+            buffer.append(row[0][(len(row[0])-3):len(row[0])])
+            buffer.append("PLO " + row[1][(len(row[1])-2):len(row[1])])
+            buffer.append(row[2])
+            deets.append(buffer)
+    return deets

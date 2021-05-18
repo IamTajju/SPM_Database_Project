@@ -312,7 +312,6 @@ def getProgramWisePLORate(programName):
             data.append(PLOrate*100)
         dataTable.append(data)
 
-    print(dataTable)
     return dataTable
 
 
@@ -333,6 +332,52 @@ def getProgramWiseCGPA(programList):
                     yearTbl.append(round(float(row[1]), 2))
                 else:
                     yearTbl.append(0.00)
+        arrTable.append(yearTbl)
+
+    return arrTable
+
+
+def getCourseWisePLORate(courseID, ploList):
+    sql_query = '''SELECT (SELECT COUNT(*) FROM ploevaluation_t, studentcourseenrollment_t, section_t, course_t WHERE studentcourseenrollment_t.courseEnrollment_id = ploevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.course_id = course_t.course_id AND ploevaluation_t.ploAchievementStatus = "Y" AND section_t.year = {} AND course_t.course_id = "{}" AND ploevaluation_t.plo_id = "{}")/(SELECT COUNT(*) FROM ploevaluation_t, studentcourseenrollment_t, section_t, course_t WHERE studentcourseenrollment_t.courseEnrollment_id = ploevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.course_id = course_t.course_id AND section_t.year = {} AND course_t.course_id = "{}" AND ploevaluation_t.plo_id = "{}");'''
+    years = [2019, 2020, 2021]
+    arrTable = []
+
+    for ploID in ploList:
+        yearTbl = []
+        ploName = "PLO " + ploID[len(ploID)-2:len(ploID)]
+        yearTbl.append(ploName)
+        for year in years:
+            with connection.cursor() as cursor:
+                cursor.execute(sql_query.format(
+                    year, courseID, ploID, year, courseID, ploID))
+                row = cursor.fetchone()
+                if row[0] == None:
+                    yearTbl.append(0.0)
+                else:
+                    yearTbl.append(round(float((row[0])*100), 2))
+        arrTable.append(yearTbl)
+
+    return arrTable
+
+
+def getCourseWiseCORate(courseID, coList):
+    sql_query = '''SELECT (SELECT COUNT(*) FROM coevaluation_t, studentcourseenrollment_t, section_t WHERE studentcourseenrollment_t.courseEnrollment_id = coevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.year = {} AND section_t.course_id = "{}" AND coevaluation_t.co_id = "{}" AND coevaluation_t.coAchievementStatus = "Y" GROUP BY coevaluation_t.co_id)/(SELECT COUNT(*) FROM coevaluation_t, studentcourseenrollment_t, section_t WHERE studentcourseenrollment_t.courseEnrollment_id = coevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.year = {} AND section_t.course_id = "{}" AND coevaluation_t.co_id = "{}" GROUP BY coevaluation_t.co_id);'''
+    years = [2019, 2020, 2021]
+    arrTable = []
+
+    for coID in coList:
+        yearTbl = []
+        coName = coID[len(coID)-3:len(coID)]
+        yearTbl.append(coName)
+        for year in years:
+            with connection.cursor() as cursor:
+                cursor.execute(sql_query.format(
+                    year, courseID, coID, year, courseID, coID))
+                row = cursor.fetchone()
+                if row[0] == None:
+                    yearTbl.append(0.0)
+                else:
+                    yearTbl.append(round(float(row[0]*100), 2))
         arrTable.append(yearTbl)
 
     return arrTable

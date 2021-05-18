@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, login, logout
+from django.forms.widgets import Select
 from django.http.response import HttpResponse
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
@@ -599,7 +600,7 @@ def programDashboard(request):
         if form.is_valid():
             selectedProgramName = form.cleaned_data["programs"]
 
-    print(selectedProgramName)
+    ploDescriptionTable = getPLOdeetsFromProgram(selectedProgramName)
     programWisePLODataTable = getProgramWisePLORate(selectedProgramName)
     programWiseCGPADataTable = getProgramWiseCGPA(programList)
     print(programWiseCGPADataTable)
@@ -611,10 +612,51 @@ def programDashboard(request):
         "programList": dumps(programList),
         "dataTable1": dumps(programWiseCGPADataTable),
         "dataTable2": dumps(programWisePLODataTable),
+        "ploTable": ploDescriptionTable
     }
     return render(request, "SPM/programDashboard.html", context)
 
 
 @allowedUsers(allowedRoles=['Higher Management'])
 def courseDashboard(request):
-    return render(request, "SPM/courseDashboard.html")
+
+    courseList = getAllCourses()
+    selectedCourse = courseList[0]
+    # Making List and Form
+    choices = []
+    for course in courseList:
+        buffer = []
+        buffer.append(course)
+        buffer.append(course[len(course)-6:len(course)])
+        choices.append(tuple(buffer))
+
+    choices = tuple(choices)
+
+    class CourseList(forms.Form):
+        course = forms.ChoiceField(
+            choices=choices, label="")
+
+    form = CourseList
+    #----------------------------------#
+    # getting user input
+    if request.method == "POST":
+        form = CourseList(request.POST)
+        if form.is_valid():
+            selectedCourse = form.cleaned_data["course"]
+
+    ploList = getPLOFromCourse(selectedCourse)
+    print(ploList)
+    coList = getCOFromCourse(selectedCourse)
+
+    COtoPLOMap = getCOtoPLOMapping(selectedCourse)
+    CORateArrayTable = getCourseWiseCORate(selectedCourse, coList)
+    PLORateArrayTable = getCourseWisePLORate(selectedCourse, ploList)
+
+    context = {
+        "map": COtoPLOMap,
+        "courseName": selectedCourse[len(selectedCourse)-6:len(selectedCourse)],
+        "form": form,
+        "dataTable1": dumps(CORateArrayTable),
+        "dataTable2": dumps(PLORateArrayTable)
+    }
+    return render(request, "SPM/courseDashboard.html", context)
