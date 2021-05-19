@@ -169,7 +169,7 @@
                 fontSize: 20,
             },
             fontName: "Montserrat",
-            colors: ['#9ECBE9', '#F58618', '#FFC079'],
+            colors: ['#2F9447', '#E06131', '#26A1E0'],
             backgroundColor: { fill: 'transparent' },
             isStacked: true,
             hAxis: {
@@ -187,7 +187,7 @@
                 position: 'bottom'
             }
         };
-        var chart = new google.visualization.BarChart(document.getElementById('departmentEnrollmentBarChart'));
+        var chart = new google.visualization.SteppedAreaChart(document.getElementById('departmentEnrollmentBarChart'));
         chart.draw(data, options);
     }
 
@@ -234,7 +234,7 @@
                 position: 'bottom'
             }
         };
-        var chart = new google.visualization.BarChart(document.getElementById('programEnrollmentBarChart'))
+        var chart = new google.visualization.SteppedAreaChart(document.getElementById('programEnrollmentBarChart'))
         chart.draw(data, options);
     }
 </script>

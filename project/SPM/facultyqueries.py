@@ -121,3 +121,33 @@ def isMarksEntered(assessmentID):
             return False
         else:
             return True
+
+
+def getQuestionList(assessmentID):
+    sql_query = '''SELECT question_t.questionNo, question_t.marksAttainable, question_t.co_id FROM question_t WHERE question_t.assessment_id = "{}";'''
+    questions = []
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query.format(assessmentID))
+        for row in cursor.fetchall():
+            buffer = []
+            for i in range(len(row)):
+                if i == 2:
+                    buffer.append(row[i][(len(row[i])-3):len(row[i])])
+                else:
+                    buffer.append(row[i])
+            questions.append(buffer)
+
+    return questions
+
+
+def checkIfSemOngoing(sectionID):
+    sql_query = '''SELECT SUM(assessment_t.assessmentWeightage) FROM assessment_t WHERE section_id = "{}"'''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query.format(sectionID))
+        row = cursor.fetchone()
+        if row[0] >= 1.0:
+            return False
+        else:
+            return True

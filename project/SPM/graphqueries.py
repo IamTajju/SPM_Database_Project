@@ -381,3 +381,77 @@ def getCourseWiseCORate(courseID, coList):
         arrTable.append(yearTbl)
 
     return arrTable
+
+
+'''SELECT course_t.course_id, ploevaluation_t.plo_id FROM ploevaluation_t, studentcourseenrollment_t, section_t, course_t WHERE ploevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.student_id = "1834433" AND ploevaluation_t.ploAchievementStatus = "Y" AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.course_id = course_t.course_id;'''
+
+
+def getAverageCOEvaluationRate(facultyID, coID):
+    sql_query = '''SELECT (SELECT COUNT(DISTINCT(coevaluation_t.courseenrollment_id)) FROM coevaluation_t, studentcourseenrollment_t, section_t WHERE studentcourseenrollment_t.courseEnrollment_id = coevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.faculty_id = {} AND coevaluation_t.co_id = "{}" AND coevaluation_t.coAchievementStatus = 'Y')/(SELECT COUNT(DISTINCT(coevaluation_t.courseenrollment_id)) FROM coevaluation_t, studentcourseenrollment_t, section_t WHERE studentcourseenrollment_t.courseEnrollment_id = coevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.faculty_id = {} AND coevaluation_t.co_id = "{}");'''
+
+    rate = 0.0
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query.format(facultyID, coID, facultyID, coID))
+        row = cursor.fetchone()
+        if row[0] != None:
+            rate = round(float(row[0]), 3)*100
+
+    return rate
+
+
+def getAveragePLOEvaluationRate(facultyID, ploID):
+    sql_query = '''SELECT (SELECT COUNT(*) FROM ploevaluation_t, studentcourseenrollment_t, section_t WHERE studentcourseenrollment_t.courseEnrollment_id = ploevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.faculty_id = {} AND ploevaluation_t.plo_id = "{}" AND ploevaluation_t.ploAchievementStatus = 'Y')/(SELECT COUNT(*) FROM ploevaluation_t, studentcourseenrollment_t, section_t WHERE studentcourseenrollment_t.courseEnrollment_id = ploevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.faculty_id = {} AND ploevaluation_t.plo_id = "{}");'''
+
+    rate = 0.0
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query.format(facultyID, ploID, facultyID, ploID))
+        row = cursor.fetchone()
+        if row[0] != None:
+            rate = round(float(row[0]), 3)*100
+
+    return rate
+
+
+def getAverageGPA(facultyID, courseID):
+    sql_query = '''SELECT (SELECT AVG(coevaluation_t.coMarksObtained) FROM coevaluation_t, studentcourseenrollment_t, section_t WHERE studentcourseenrollment_t.courseEnrollment_id = coevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.year = {} AND section_t.faculty_id = {} AND section_t.course_id = "{}")/(SELECT AVG(coevaluation_t.coMarksAttainable) FROM coevaluation_t, studentcourseenrollment_t, section_t WHERE studentcourseenrollment_t.courseEnrollment_id = coevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.year = {} AND section_t.faculty_id = {} AND section_t.course_id = "{}")*100;
+'''
+
+    gpaList = []
+    years = [2019, 2020, 2021]
+    for year in years:
+        buffer = []
+        buffer.append(str(year))
+        with connection.cursor() as cursor:
+            cursor.execute(sql_query.format(year, facultyID,
+                           courseID, year, facultyID, courseID))
+            row = cursor.fetchone()
+
+            if row[0] != None:
+                print(row[0])
+                if row[0] >= 0 and row[0] <= 44:
+                    buffer.append(0.0)
+                elif row[0] > 44 and row[0] <= 49:
+                    buffer.append(1.0)
+                elif row[0] > 49 and row[0] <= 54:
+                    buffer.append(1.3)
+                elif row[0] > 54 and row[0] <= 59:
+                    buffer.append(1.7)
+                elif row[0] > 59 and row[0] <= 64:
+                    buffer.append(2.0)
+                elif row[0] > 64 and row[0] <= 69:
+                    buffer.append(2.3)
+                elif row[0] > 69 and row[0] <= 74:
+                    buffer.append(2.7)
+                elif row[0] > 74 and row[0] <= 79:
+                    buffer.append(3.0)
+                elif row[0] > 79 and row[0] <= 84:
+                    buffer.append(3.3)
+                elif row[0] > 84 and row[0] <= 89:
+                    buffer.append(3.7)
+                elif row[0] > 89 and row[0] <= 100:
+                    buffer.append(4.0)
+            else:
+                buffer.append(0.0)
+        gpaList.append(buffer)
+
+    return gpaList

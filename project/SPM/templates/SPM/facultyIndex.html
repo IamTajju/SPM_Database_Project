@@ -104,19 +104,16 @@
                 {% csrf_token %}
                 {{ form }}
                 <div class="col-6 mt-3">
+                    {% if check %}
                     <button type="submit" class="btn btn-success">Create
                         Assignment</button>
+                    {% else %}
+                    <button type="submit" class="btn btn-success disabled">Create
+                        Assignment</button>
+                    {% endif %}
                 </div>
-                {% if message %}
-                <div class="col-6 mt-3">
-                    <a href="mapQuestions" class="btn btn-primary">Map Questions to COs</a>
-                </div>
-                {% endif %}
             </form>
         </div>
-        {% if message %}
-        <h4 class="h4">{{ message }}</h4>
-        {% endif %}
     </div>
     <hr>
 </div>

@@ -16,5 +16,6 @@ urlpatterns = [
     path("departmentDashboard", views.departmentDashboard,
          name="departmentDashboard"),
     path("programDashboard", views.programDashboard, name="programDashboard"),
-    path("courseDashboard", views.courseDashboard, name="courseDashboard")
+    path("courseDashboard", views.courseDashboard, name="courseDashboard"),
+    path("studentDashboard", views.studentdashboard, name="studentDashboard")
 ]

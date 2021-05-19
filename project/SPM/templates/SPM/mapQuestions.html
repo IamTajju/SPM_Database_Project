@@ -26,21 +26,40 @@
 </div>
 <div class="container">
     <div class="row mt-3 mb-3">
-        <h2 class="h2">Add Question</h2>
         <div class="col-6 ">
-            <form action="{% url 'mapQuestions' %}" method="POST" class="list-group lead">
+            <h2 class="h2">Add Question</h2>
+            <form action="{% url 'mapQuestions' %}" method="POST" class="row justify-content-start list-group lead">
                 {% csrf_token %}
                 {{ form2 }}
-                <div class="col-6 mt-3 mb-3">
-                    <button type="submit" class="btn btn-info" style="color:ivory;">Add Question</button>
+                <div class="row justify-content-start mt-3 mb-3" style="padding:0%;">
+                    <div class="col-3">
+                        <button type="submit" class="btn btn-primary" style="color:ivory;">Add Question</button>
+                    </div>
+                    <div class="col-2">
+                        <a type="button" class="btn btn-success" href="{% url 'facultyIndex'%}">Done</a>
+                    </div>
                 </div>
             </form>
         </div>
-        <div>
-            <a type="button" class="btn btn-success" href="{% url 'facultyIndex'%}">Done</a>
-            {% if message %}
-            <h4 class="h4 mt-3">{{ message }}</h4>
-            {% endif %}
+        <div class="col-6">
+            <table class="table table-light table-hover " style="color: rgb(41, 41, 37);">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Question No</th>
+                        <th scope="col">Question Marks</th>
+                        <th scope="col">CO Mapping</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for question in questionList %}
+                    <tr>
+                        <td>{{ question.0 }}</td>
+                        <td>{{ question.1 }}</td>
+                        <td>{{ question.2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

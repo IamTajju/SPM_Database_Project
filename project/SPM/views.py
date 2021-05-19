@@ -31,12 +31,16 @@ def facultyIndex(request):
     bufferCurrentSemDeets = getCurrentSemesterID(facultyid)
     sectionChoices = []
     for deets in bufferCurrentSemDeets:
-        buffer = []
-        buffer.append(deets[3])
-        buffer.append(deets[0]+" Section: "+str(deets[1]))
-        sectionChoices.append(tuple(buffer))
+        if checkIfSemOngoing(deets[3]):
+            buffer = []
+            buffer.append(deets[3])
+            buffer.append(deets[0]+" Section: "+str(deets[1]))
+            sectionChoices.append(tuple(buffer))
 
     sectionChoices = tuple(sectionChoices)
+    check = "ok"
+    if not sectionChoices:
+        check = ""
 
     class NewAssessmentForm(forms.Form):
         section = forms.ChoiceField(
@@ -56,7 +60,8 @@ def facultyIndex(request):
             "currentSemDeets": currentSemDeets,
             "form": NewAssessmentForm,
             "assessments": assessments,
-            "dict": isAssessmentFilled(assessments)
+            "dict": isAssessmentFilled(assessments),
+            "check": check
         }
         )
 
@@ -80,14 +85,7 @@ def facultyIndex(request):
         # For table update in real time.
         assessments = getCurrentAssessments(facultyid)
 
-        return render(request, "SPM/facultyIndex.html", {
-            "name": facultyname,
-            "currentSemDeets": currentSemDeets,
-            "form": NewAssessmentForm,
-            "message": message,
-            "assessments": assessments,
-            "dict": isAssessmentFilled(assessments)
-        })
+        return mapQuestions(request)
 
 
 @allowedUsers(allowedRoles=['Faculty'])
@@ -115,7 +113,7 @@ def mapQuestions(request):
         coID = forms.ChoiceField(
             choices=coChoices, label="Select Course Outcome")
 
-    message = ""
+    questionList = getQuestionList(request.session["assessmentID"])
     if request.method == "POST":
         form = NewQuestion(request.POST)
 
@@ -123,18 +121,14 @@ def mapQuestions(request):
             qNo = form.cleaned_data["qNo"]
             marks = form.cleaned_data["marksAttainable"]
             coID = form.cleaned_data["coID"]
-
             createQuestion(qNo, request.session["assessmentID"], coID, marks)
-            message = "Question added successfully! Please enter new question"
-
-        else:
-            message = "Invalid input please try again"
+            questionList = getQuestionList(request.session["assessmentID"])
 
     return render(request, "SPM/mapQuestions.html", {
         "form2": NewQuestion,
         "courseID": request.session["courseID"],
         "assessmentID": request.session["assessmentID"],
-        "message": message
+        "questionList": questionList
     })
 
 
@@ -182,6 +176,9 @@ def homepage(request):
             populateCOEvaluation()
             populatePLOEvaluation()
             return dashboard(request)
+
+        if group == 'Student':
+            return studentdashboard(request)
 
 
 @allowedUsers(allowedRoles=['Faculty'])
@@ -289,7 +286,7 @@ def SemStats(request):
 
     # Showing evaluation for the selected course
     coIDs = getCOs(selectedCourseID)
-
+    print(coIDs)
     # Getting all PLOs mapped to the COs for the selected course
     ploIDs = []
     for coID in coIDs:
@@ -301,14 +298,15 @@ def SemStats(request):
     check = True
     # Finding all sections for selected course
     sectionIDs = []
+    sectionCount = 0.0
     for id in CurrentSemesterIDs:
         if id[0] == selectedCourseID:
+            sectionCount = sectionCount + 1.0
             sectionIDs.append(id[3])
+            sectionProgress = sectionProgress + \
+                float(getCurrentSemProgress(id[3]))
 
-            # For semester progress
-            if check:
-                sectionProgress = float(getCurrentSemProgress(id[3]))
-                check = False
+    sectionProgress = sectionProgress/sectionCount
 
     AllSectionsCOEvaluations = []
     AllSectionsPLOEvaluations = []
@@ -320,10 +318,13 @@ def SemStats(request):
             sectionWiseCOEvaluations.append(coEvaluationRate)
 
         # List for each sections each PLO achievement rate [plo1Rate, plo2Rate, plo3Rate]
+        # Preparing PLO List name for view
         sectionWisePLOEvaluations = []
+        PLONames = []
         for ploID in ploIDs:
             ploEvaluationRate = getPLOEvaluationRate(sectionID, ploID)
             sectionWisePLOEvaluations.append(ploEvaluationRate)
+            PLONames.append("PLO " + ploID[(len(ploID)-2):(len(ploID))])
 
         # List of lists for each sections CO achievmentRates
         AllSectionsCOEvaluations.append(sectionWiseCOEvaluations)
@@ -333,7 +334,7 @@ def SemStats(request):
     context = {"facultyName": facultyname,
                "noOfSection": dumps(len(sectionIDs)),
                "noOfCOs": dumps(len(coIDs)),
-               "noOfPLOs": dumps(len(ploIDs)),
+               "PLONames": dumps(PLONames),
                "data": dumps(AllSectionsCOEvaluations),
                "data2": dumps(AllSectionsPLOEvaluations),
                "form": form,
@@ -397,40 +398,30 @@ def facultyHistoryStats(request):
         ploID = getPLOID(coID[0])
         ploIDs.append(ploID)
 
-    # Finding all sections for selected course
-    sectionIDs = []
-    for id in CurrentSemesterIDs:
-        if id[0] == selectedCourseID:
-            sectionIDs.append(id[3])
+    AverageCOEvaluations = []
+    AveragePLOEvaluations = []
+    PLONames = []
+    # List for each CO achievement rate [co1Rate, co2Rate, co3Rate]
+    for coID in coIDs:
+        coEvaluationRate = getAverageCOEvaluationRate(facultyid, coID[0])
+        AverageCOEvaluations.append(coEvaluationRate)
 
-    AllSectionsCOEvaluations = []
-    AllSectionsPLOEvaluations = []
-    for sectionID in sectionIDs:
-        # List for each sections each CO achievement rate [co1Rate, co2Rate, co3Rate]
-        sectionWiseCOEvaluations = []
-        for coID in coIDs:
-            coEvaluationRate = getCOEvaluationRate(sectionID, coID[0])
-            sectionWiseCOEvaluations.append(coEvaluationRate)
+    # List for each sections each PLO achievement rate [plo1Rate, plo2Rate, plo3Rate]
+    for ploID in ploIDs:
+        ploEvaluationRate = getAveragePLOEvaluationRate(facultyid, ploID)
+        AveragePLOEvaluations.append(ploEvaluationRate)
+        PLONames.append("PLO " + ploID[(len(ploID)-2):(len(ploID))])
 
-        # List for each sections each PLO achievement rate [plo1Rate, plo2Rate, plo3Rate]
-        sectionWisePLOEvaluations = []
-        for ploID in ploIDs:
-            ploEvaluationRate = getPLOEvaluationRate(sectionID, ploID)
-            sectionWisePLOEvaluations.append(ploEvaluationRate)
-
-        # List of lists for each sections CO achievmentRates
-        AllSectionsCOEvaluations.append(sectionWiseCOEvaluations)
-        # List of lists for each sections PLO achievmentRates
-        AllSectionsPLOEvaluations.append(sectionWisePLOEvaluations)
-
+    # Getting Average Yearly GPA Table
+    AverageGPATable = getAverageGPA(facultyid, selectedCourseID)
     context = {"facultyName": facultyname,
-               "noOfSection": dumps(len(sectionIDs)),
                "noOfCOs": dumps(len(coIDs)),
-               "noOfPLOs": dumps(len(ploIDs)),
-               "data": dumps(AllSectionsCOEvaluations),
-               "data2": dumps(AllSectionsPLOEvaluations),
+               "PLONames": dumps(PLONames),
+               "data": dumps(AverageCOEvaluations),
+               "data2": dumps(AveragePLOEvaluations),
                "form": form,
                "selectedCourseID": selectedCourseID,
+               "data3": dumps(AverageGPATable)
                }
 
     return render(request, "SPM/FacultyStats.html", context)
@@ -645,7 +636,6 @@ def courseDashboard(request):
             selectedCourse = form.cleaned_data["course"]
 
     ploList = getPLOFromCourse(selectedCourse)
-    print(ploList)
     coList = getCOFromCourse(selectedCourse)
 
     COtoPLOMap = getCOtoPLOMapping(selectedCourse)
@@ -660,3 +650,8 @@ def courseDashboard(request):
         "dataTable2": dumps(PLORateArrayTable)
     }
     return render(request, "SPM/courseDashboard.html", context)
+
+
+@allowedUsers(allowedRoles=['Student'])
+def studentdashboard(request):
+    return render(request, "SPM/studentDashboard.html")

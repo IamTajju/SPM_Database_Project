@@ -115,7 +115,7 @@ def populateCOEvaluation():
 
                 # Setting achievement status with a benchmarks of 60%
                 status = 'N'
-                if coMarksObtained >= coTotalMarks*0.6:
+                if coMarksObtained >= coTotalMarks*0.4:
                     status = 'Y'
 
                 # inputing data into coEvaluation Table

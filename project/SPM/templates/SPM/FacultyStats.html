@@ -24,7 +24,7 @@
         </div>
     </div>
     <hr>
-    <form class="row align-items-end mt-5" action="{% url 'SemesterStats' %}" method="POST">
+    <form class="row align-items-end mt-5" action="{% url 'FacultyStats' %}" method="POST">
         <div class="col-9">
             <h1 class="display-6">Faculty: {{ facultyName }}</h1>
         </div>
@@ -39,13 +39,13 @@
         </div>
     </form>
     <div class="row align-items-center mt-5">
-        <div id="CO_div"></div>
+        <div id="CO_div" style="height: 500px;"></div>
     </div>
     <div class="row align-items-center mt-5 mb-5">
-        <div id="PLO_div"></div>
+        <div id="PLO_div" style="height: 500px;"></div>
     </div>
     <div class="row align-items-center mt-5 mb-5">
-        <div id="CGPA_chart"></div>
+        <div id="CGPA_chart" style="height: 500px;"></div>
     </div>
 </div>
 
@@ -61,15 +61,7 @@
     function drawCOChart() {
         var data = new google.visualization.DataTable();
         data.addColumn('string', 'Course Outcome');
-
-        var i;
-        var noOfSections = JSON.parse("{{noOfSection|escapejs}}");
-        for (i = 0; i < noOfSections; i++) {
-            var currSectionNo = (i + 1).toString();
-            var str = "Section ";
-            var finalStr = str.concat(currSectionNo);
-            data.addColumn('number', finalStr);
-        }
+        data.addColumn('number', 'Rate')
 
         var noOfCOs = JSON.parse("{{noOfCOs|escapejs}}");
 
@@ -81,10 +73,7 @@
             var finalStr = str.concat(currCO);
             var arr = [];
             arr.push(finalStr);
-            var k;
-            for (k = 0; k < noOfSections; k++) {
-                arr.push(sectionValues[k][j])
-            }
+            arr.push(sectionValues[j])
             data.addRow(arr);
         }
         var options = {
@@ -92,7 +81,7 @@
             titleTextStyle: {
                 color: 'white'
             },
-            colors: ['#4dd0e1', '#00838f'],
+            colors: ['#4dd0e1'],
             fontName: "Montserrat",
             backgroundColor: { fill: 'transparent' },
             hAxis: {
@@ -124,30 +113,16 @@
     function drawPLOChart() {
         var data = new google.visualization.DataTable();
         data.addColumn('string', 'Program Learning Outcome');
+        data.addColumn('number', 'Rate')
 
-        var i;
-        var noOfSections = JSON.parse("{{noOfSection|escapejs}}");
-        for (i = 0; i < noOfSections; i++) {
-            var currSectionNo = (i + 1).toString();
-            var str = "Section ";
-            var finalStr = str.concat(currSectionNo);
-            data.addColumn('number', finalStr);
-        }
-
-        var noOfPLOs = JSON.parse("{{noOfPLOs|escapejs}}");
+        var PLONames = JSON.parse("{{PLONames|escapejs}}");
 
         var j;
         var sectionValues = JSON.parse("{{data2|escapejs}}");
-        for (j = 0; j < noOfPLOs; j++) {
-            var currPLO = (j + 1).toString();
-            var str = "PLO ";
-            var finalStr = str.concat(currPLO);
+        for (j = 0; j < PLONames.length; j++) {
             var arr = [];
-            arr.push(finalStr);
-            var k;
-            for (k = 0; k < noOfSections; k++) {
-                arr.push(sectionValues[k][j])
-            }
+            arr.push(PLONames[j]);
+            arr.push(sectionValues[j])
             data.addRow(arr);
         }
         var options = {
@@ -184,12 +159,12 @@
     }
 
     function CGPAChart() {
+        var dataTable = JSON.parse("{{data3|escapejs}}");
         var data = google.visualization.arrayToDataTable([
             ['Year', 'GPA'],
-            ['2004', 3.1],
-            ['2005', 3.2],
-            ['2006', 1.3],
-            ['2007', 2.3]
+            dataTable[0],
+            dataTable[1],
+            dataTable[2],
         ]);
 
         var options = {
@@ -209,6 +184,8 @@
             },
             vAxis: {
                 textStyle: { color: 'white' },
+                maxValue: 4.0,
+                minValue: 0.0
             },
             legend: {
                 textStyle: {

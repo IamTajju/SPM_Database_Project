@@ -1,7 +1,15 @@
 {% extends "SPM/loginlayout.html" %}
-
+{% load static %}
 {% block body %}
 
+<div class="row mt-5 mb-3">
+    <div class="col-9 d-flex justify-content-center">
+        <img src="{% static 'SPM/images/spmlogo.png' %}" height="150px" />
+    </div>
+    <div class="col-3 d-flex justify-content-end">
+        <img src="{% static 'SPM/images/iubLogin.png' %}" height="150px" />
+    </div>
+</div>
 <form action="{% url 'login' %}" method="POST">
     {% csrf_token %}
     <div class="mb-3">
