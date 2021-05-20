@@ -147,6 +147,8 @@ def checkIfSemOngoing(sectionID):
     with connection.cursor() as cursor:
         cursor.execute(sql_query.format(sectionID))
         row = cursor.fetchone()
+        if row[0] == None:
+            return True
         if row[0] >= 1.0:
             return False
         else:

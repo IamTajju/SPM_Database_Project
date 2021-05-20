@@ -118,3 +118,14 @@ def getCOtoPLOMapping(courseID):
             buffer.append(row[2])
             deets.append(buffer)
     return deets
+
+
+def getStudentCGPA(studentID):
+    sql_query = '''SELECT student_t.cgpa FROM student_t WHERE student_t.student_id = "{}";'''
+    cgpa = 0.0
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query.format(studentID))
+        row = cursor.fetchone()
+        cgpa = float(row[0])
+
+    return cgpa

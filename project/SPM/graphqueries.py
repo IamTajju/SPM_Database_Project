@@ -383,9 +383,6 @@ def getCourseWiseCORate(courseID, coList):
     return arrTable
 
 
-'''SELECT course_t.course_id, ploevaluation_t.plo_id FROM ploevaluation_t, studentcourseenrollment_t, section_t, course_t WHERE ploevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.student_id = "1834433" AND ploevaluation_t.ploAchievementStatus = "Y" AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.course_id = course_t.course_id;'''
-
-
 def getAverageCOEvaluationRate(facultyID, coID):
     sql_query = '''SELECT (SELECT COUNT(DISTINCT(coevaluation_t.courseenrollment_id)) FROM coevaluation_t, studentcourseenrollment_t, section_t WHERE studentcourseenrollment_t.courseEnrollment_id = coevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.faculty_id = {} AND coevaluation_t.co_id = "{}" AND coevaluation_t.coAchievementStatus = 'Y')/(SELECT COUNT(DISTINCT(coevaluation_t.courseenrollment_id)) FROM coevaluation_t, studentcourseenrollment_t, section_t WHERE studentcourseenrollment_t.courseEnrollment_id = coevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.faculty_id = {} AND coevaluation_t.co_id = "{}");'''
 
@@ -455,3 +452,97 @@ def getAverageGPA(facultyID, courseID):
         gpaList.append(buffer)
 
     return gpaList
+
+
+def getStudentPLOcourseWiseHistory(studentID):
+    sql_query = '''SELECT course_t.course_id, ploevaluation_t.plo_id FROM ploevaluation_t, studentcourseenrollment_t, section_t, course_t WHERE ploevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.student_id = "{}" AND ploevaluation_t.ploAchievementStatus = "Y" AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.course_id = course_t.course_id;'''
+    dataTable = []
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query.format(studentID))
+
+        for row in cursor.fetchall():
+            data = []
+            courseName = row[0][(len(row[0])-6):len(row[0])]
+            data.append(courseName)
+            ploID = row[1][(len(row[1])-2):len(row[1])]
+            ploID = int(ploID)
+            data.append(ploID)
+            dataTable.append(data)
+
+    return dataTable
+
+
+def getStudentPLOStats(studentID):
+
+    sql_query1 = '''SELECT ploevaluation_t.plo_id, COUNT(ploevaluation_t.plo_id) FROM ploevaluation_t, studentcourseenrollment_t, section_t, course_t WHERE ploevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.student_id = "{}" AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.course_id = course_t.course_id GROUP BY ploevaluation_t.plo_id;'''
+    sql_query2 = '''SELECT COUNT(ploevaluation_t.plo_id) FROM ploevaluation_t, studentcourseenrollment_t, section_t, course_t WHERE ploevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.student_id = "{}" AND ploevaluation_t.ploAchievementStatus = "Y" AND studentcourseenrollment_t.section_id = section_t.section_id AND section_t.course_id = course_t.course_id AND ploevaluation_t.plo_id = "{}";
+'''
+    sql_query3 = '''SELECT COUNT(co_t.plo_id) FROM co_t WHERE co_t.plo_id = "{}";'''
+    dataTable = []
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query1.format(studentID))
+        rows = cursor.fetchall()
+        for row in rows:
+            data = []
+            ploID = "PLO " + row[0][(len(row[0])-2):len(row[0])]
+            data.append(ploID)
+            data.append(row[1])
+            cursor.execute(sql_query2.format(studentID, row[0]))
+            achieved = cursor.fetchone()
+            data.append(achieved[0])
+            cursor.execute(sql_query3.format(row[0]))
+            attemptRequired = cursor.fetchone()
+            data.append(attemptRequired[0])
+            dataTable.append(data)
+
+    return dataTable
+
+
+def getStudentCurrentCourses(studentID):
+    sql_query = '''SELECT section_t.course_id FROM section_t, studentcourseenrollment_t, semestermapping_t WHERE studentcourseenrollment_t.section_id = section_t.section_id AND section_t.session = semestermapping_t.session 
+AND (MONTH(CURRENT_DATE) BETWEEN MONTH(semestermapping_t.startDate) AND MONTH(semestermapping_t.endDate)) AND section_t.year = YEAR(CURRENT_DATE) AND studentcourseenrollment_t.student_id = "{}";'''
+
+    courseIDs = []
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query.format(studentID))
+        rows = cursor.fetchall()
+        for row in rows:
+            courseIDs.append(row[0])
+
+    return courseIDs
+
+
+def getStudentSemProgress(courseIDs, studentID):
+    sql_query = '''SELECT coevaluation_t.co_id, ROUND((coevaluation_t.coMarksObtained / coevaluation_t.coMarksAttainable)*100,1) FROM coevaluation_t, co_t, studentcourseenrollment_t WHERE coevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.student_id = "{}" AND coevaluation_t.co_id = co_t.co_id AND co_t.course_id = "{}" GROUP BY coevaluation_t.co_id;'''
+
+    dataTable = [[], [], [], [], []]
+    dataTable[0].append("COs")
+    for i in range(len(dataTable)-1):
+        dataTable[i+1].append("CO"+str(i+1))
+        for courseID in courseIDs:
+            if i == 0:
+                dataTable[0].append(courseID[(len(courseID)-6):len(courseID)])
+            with connection.cursor() as cursor:
+                cursor.execute(sql_query.format(studentID, courseID))
+                rows = cursor.fetchall()
+                if not rows:
+                    dataTable[i+1].append(0.0)
+                else:
+                    dataTable[i+1].append(rows[i][1])
+
+    dataTable[0].append("Pass Rate")
+    for i in range(len(dataTable)):
+        if i != 0:
+            dataTable[i].append(40.0)
+
+    return dataTable
+
+def getStudentAveragePLORate(studentID):
+    sql_query = '''SELECT (SELECT COUNT(ploevaluation_t.courseenrollment_id) FROM ploevaluation_t, studentcourseenrollment_t WHERE ploevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.student_id = "{}" AND ploevaluation_t.ploAchievementStatus = "Y")/(SELECT COUNT(ploevaluation_t.courseenrollment_id) FROM ploevaluation_t, studentcourseenrollment_t WHERE ploevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.student_id = "{}");'''
+    rate = 0.0
+    with connection.cursor() as cursor:
+        cursor.execute(sql_query.format(studentID, studentID))
+        row = cursor.fetchone()
+        rate = round(float(row[0]),2)*100
+
+    return rate

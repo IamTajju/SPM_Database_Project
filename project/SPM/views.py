@@ -654,4 +654,21 @@ def courseDashboard(request):
 
 @allowedUsers(allowedRoles=['Student'])
 def studentdashboard(request):
-    return render(request, "SPM/studentDashboard.html")
+    studentID = request.user.username
+    studentName = request.user.get_full_name()
+    cgpa = getStudentCGPA(studentID)
+    avgPlo = getStudentAveragePLORate(studentID)
+    courseIDs = getStudentCurrentCourses(studentID)
+    semProgress = getStudentSemProgress(courseIDs, studentID)
+    PLOHistogram = getStudentPLOcourseWiseHistory(studentID)
+    PLOStats = getStudentPLOStats(studentID)
+    context = {
+        "data1": dumps(PLOHistogram),
+        "data2": dumps(PLOStats),
+        "data3": dumps(semProgress),
+        "name": studentName,
+        "ID": studentID,
+        "cgpa": cgpa,
+        "plo": avgPlo
+    }
+    return render(request, "SPM/studentDashboard.html", context)
