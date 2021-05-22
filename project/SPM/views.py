@@ -414,6 +414,7 @@ def facultyHistoryStats(request):
 
     # Getting Average Yearly GPA Table
     AverageGPATable = getAverageGPA(facultyid, selectedCourseID)
+
     context = {"facultyName": facultyname,
                "noOfCOs": dumps(len(coIDs)),
                "PLONames": dumps(PLONames),

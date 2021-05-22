@@ -2,48 +2,27 @@ from django.db import connection, connections
 
 
 def getCOEvaluationRate(sectionID, coID):
-    sql_query1 = '''SELECT COUNT(*) FROM coevaluation_t, studentcourseenrollment_t WHERE studentcourseenrollment_t.courseEnrollment_id = coevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = "{}" AND coevaluation_t.co_id = "{}";'''
-    sql_query2 = '''SELECT COUNT(*) FROM coevaluation_t, studentcourseenrollment_t WHERE studentcourseenrollment_t.courseEnrollment_id = coevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = "{}" AND coevaluation_t.co_id = "{}" AND coevaluation_t.coAchievementStatus = 'Y';'''
-
-    total = 0.0
-    achieved = 0.0
+    sql_query = '''SELECT ((SELECT COUNT(*) FROM coevaluation_t, studentcourseenrollment_t WHERE studentcourseenrollment_t.courseEnrollment_id = coevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = "{}" AND coevaluation_t.co_id = "{}" AND coevaluation_t.coAchievementStatus = 'Y')/(SELECT COUNT(*) FROM coevaluation_t, studentcourseenrollment_t WHERE studentcourseenrollment_t.courseEnrollment_id = coevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = "{}" AND coevaluation_t.co_id = "{}"));'''
     with connection.cursor() as cursor:
-        cursor.execute(sql_query1.format(sectionID, coID))
+        cursor.execute(sql_query.format(sectionID, coID, sectionID, coID))
         row = cursor.fetchall()
-        total = row[0][0]
-
-    with connection.cursor() as cursor:
-        cursor.execute(sql_query2.format(sectionID, coID))
-        row = cursor.fetchall()
-        achieved = row[0][0]
-
-    if total == 0:
-        rate = 0.0
-    else:
-        rate = (achieved/total)*100
+        if row[0][0] != None:
+            rate = round((float(row[0][0])), 3)*100
+        else:
+            rate = 0.0
     return rate
 
 
 def getPLOEvaluationRate(sectionID, ploID):
-    sql_query1 = '''SELECT COUNT(*) FROM ploevaluation_t, studentcourseenrollment_t WHERE studentcourseenrollment_t.courseEnrollment_id = ploevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = "{}" AND ploevaluation_t.plo_id = "{}";'''
-    sql_query2 = '''SELECT COUNT(*) FROM ploevaluation_t, studentcourseenrollment_t WHERE studentcourseenrollment_t.courseEnrollment_id = ploevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = "{}" AND ploevaluation_t.plo_id = "{}" AND ploevaluation_t.ploAchievementStatus = 'Y';'''
-
-    total = 0.0
-    achieved = 0.0
-    with connection.cursor() as cursor:
-        cursor.execute(sql_query1.format(sectionID, ploID))
-        row = cursor.fetchall()
-        total = row[0][0]
+    sql_query = '''SELECT(SELECT COUNT(*) FROM ploevaluation_t, studentcourseenrollment_t WHERE studentcourseenrollment_t.courseEnrollment_id = ploevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = "{}" AND ploevaluation_t.plo_id = "{}" AND ploevaluation_t.ploAchievementStatus = 'Y')/(SELECT COUNT(*) FROM ploevaluation_t, studentcourseenrollment_t WHERE studentcourseenrollment_t.courseEnrollment_id = ploevaluation_t.courseenrollment_id AND studentcourseenrollment_t.section_id = "{}" AND ploevaluation_t.plo_id = "{}");'''
 
     with connection.cursor() as cursor:
-        cursor.execute(sql_query2.format(sectionID, ploID))
+        cursor.execute(sql_query.format(sectionID, ploID, sectionID, ploID))
         row = cursor.fetchall()
-        achieved = row[0][0]
-
-    if total == 0:
-        rate = 0.0
-    else:
-        rate = (achieved/total)*100
+        if row[0][0] != None:
+            rate = round((float(row[0][0])), 3)*100
+        else:
+            rate = 0.0
     return rate
 
 
@@ -304,11 +283,11 @@ def getProgramWisePLORate(programName):
         if dict[programName] == False:
             programName = attempted[i][0]
             data.append(
-                "PLO" + programName[len(programName)-1:len(programName)])
+                "PLO" + programName[len(programName)-2:len(programName)])
             data.append(0)
         else:
             data.append(
-                "PLO" + programName[len(programName)-1:len(programName)])
+                "PLO" + programName[len(programName)-2:len(programName)])
             data.append(PLOrate*100)
         dataTable.append(data)
 
@@ -424,10 +403,7 @@ def getAverageGPA(facultyID, courseID):
             row = cursor.fetchone()
 
             if row[0] != None:
-                print(row[0])
-                if row[0] >= 0 and row[0] <= 44:
-                    buffer.append(0.0)
-                elif row[0] > 44 and row[0] <= 49:
+                if row[0] <= 49:
                     buffer.append(1.0)
                 elif row[0] > 49 and row[0] <= 54:
                     buffer.append(1.3)
@@ -537,12 +513,13 @@ def getStudentSemProgress(courseIDs, studentID):
 
     return dataTable
 
+
 def getStudentAveragePLORate(studentID):
     sql_query = '''SELECT (SELECT COUNT(ploevaluation_t.courseenrollment_id) FROM ploevaluation_t, studentcourseenrollment_t WHERE ploevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.student_id = "{}" AND ploevaluation_t.ploAchievementStatus = "Y")/(SELECT COUNT(ploevaluation_t.courseenrollment_id) FROM ploevaluation_t, studentcourseenrollment_t WHERE ploevaluation_t.courseenrollment_id = studentcourseenrollment_t.courseEnrollment_id AND studentcourseenrollment_t.student_id = "{}");'''
     rate = 0.0
     with connection.cursor() as cursor:
         cursor.execute(sql_query.format(studentID, studentID))
         row = cursor.fetchone()
-        rate = round(float(row[0]),2)*100
+        rate = round(float(row[0]), 2)*100
 
     return rate
