@@ -6,14 +6,10 @@ def getCOEvaluationRate(sectionID, coID):
     with connection.cursor() as cursor:
         cursor.execute(sql_query.format(sectionID, coID, sectionID, coID))
         row = cursor.fetchall()
-<<<<<<< HEAD
         if row[0][0] != None:
             rate = round((float(row[0][0])), 3)*100
         else:
             rate = 0.0
-=======
-        rate = round((float(row[0][0])), 3)*100
->>>>>>> ec5b29ebe2ea72ba03ab1ed6693593e671a45041
     return rate
 
 
@@ -23,14 +19,10 @@ def getPLOEvaluationRate(sectionID, ploID):
     with connection.cursor() as cursor:
         cursor.execute(sql_query.format(sectionID, ploID, sectionID, ploID))
         row = cursor.fetchall()
-<<<<<<< HEAD
         if row[0][0] != None:
             rate = round((float(row[0][0])), 3)*100
         else:
             rate = 0.0
-=======
-        rate = round((float(row[0][0])), 3)*100
->>>>>>> ec5b29ebe2ea72ba03ab1ed6693593e671a45041
     return rate
 
 
