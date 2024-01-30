@@ -28,7 +28,7 @@ The upgraded SPM is designed with comprehensiveness and scalability, allowing re
 
 ![Screenshot 1](project/Chart%201.png)
 ![Screenshot 2](project/Chart%203.png)
-![Screenshot 3](project/Marksheet%20input.png)
+![Screenshot 3](project/Marksheet%20Input.png)
 ![Screenshot 4](project/Chart%202.png)
 
 
