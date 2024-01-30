@@ -19,18 +19,19 @@ The upgraded SPM is designed with comprehensiveness and scalability, allowing re
 ### Entity Relationship Diagram (ERD)
 
 ![ERD](project/erd.png)
-<!-- Add your ERD image file in the "images" directory and replace "erd.png" with the actual file name. -->
 
 ### Final Report
 
-- [Download PDF](reports/final_report.pdf)
-<!-- Add your PDF file in the "reports" directory and replace "final_report.pdf" with the actual file name. -->
+- [Download PDF](Final%20report%20v1.0.pdf)
 
 ### UI Screenshots
 
-![Screenshot 1](project/chart 1.png)
-<!-- Add your UI screenshot image files in the "images" directory and replace "screenshot1.png" with the actual file name. -->
-<!-- You can add more screenshot sections as needed. -->
+![Screenshot 1](project/Chart%201.png)
+![Screenshot 2](project/Chart%203.png)
+![Screenshot 3](project/Marksheet%20input.png)
+![Screenshot 4](project/Chart%202.png)
+
+
 
 ## Getting Started
 
