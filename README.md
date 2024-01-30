@@ -1,4 +1,4 @@
-# Student Performance Monitor (SPM)
+# Student Performance Monitor (SPM) 2021
 
 ## Overview
 
@@ -18,7 +18,7 @@ The upgraded SPM is designed with comprehensiveness and scalability, allowing re
 
 ### Entity Relationship Diagram (ERD)
 
-![ERD](images/erd.png)
+![ERD](project/erd.png)
 <!-- Add your ERD image file in the "images" directory and replace "erd.png" with the actual file name. -->
 
 ### Final Report
@@ -28,7 +28,7 @@ The upgraded SPM is designed with comprehensiveness and scalability, allowing re
 
 ### UI Screenshots
 
-![Screenshot 1](images/screenshot1.png)
+![Screenshot 1](project/chart 1.png)
 <!-- Add your UI screenshot image files in the "images" directory and replace "screenshot1.png" with the actual file name. -->
 <!-- You can add more screenshot sections as needed. -->
 
